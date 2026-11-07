@@ -1,0 +1,54 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# --- Tooling caches ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- PyInstaller build output (keep *.spec files tracked) ---
+build/
+dist/
+
+# --- Local data: databases, backups, logs (never commit customer data) ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+backups/
+logs/
+*.log
+
+# --- Secrets / local config ---
+.env
+.env.*
+!.env.example
+
+# --- Tailwind standalone CLI binary (downloaded per machine) ---
+/tailwindcss
+/tailwindcss-*
+
+# --- Node (only if Tailwind is ever run via npm) ---
+node_modules/
+
+# --- Claude Code personal settings ---
+.claude/settings.local.json
+
+# --- Editors ---
+.vscode/
+.idea/
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
