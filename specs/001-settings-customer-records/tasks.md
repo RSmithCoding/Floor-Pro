@@ -623,12 +623,12 @@ preferences, the filter, and that trade can't turn the breakdown off (quickstart
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T071 [P] Write `tests/integration/test_assets.py`:
+- [X] T071 [P] Write `tests/integration/test_assets.py`:
   - rendered `base.html` contains no `http://` or `https://` in any `src` or `href` (no CDN, Principle IV)
   - `src/floorpro/static/js/app.js` is under 40 non-blank lines
   - `/static/vendor/htmx.min.js` is served
-- [ ] T072 [P] Create `README.md` at the repository root: what FloorPro is, prerequisites, setup and run commands (link to `specs/001-settings-customer-records/quickstart.md`), and where the data is stored.
-- [ ] T073 Accessibility pass across `src/floorpro/templates/`:
+- [X] T072 [P] Create `README.md` at the repository root: what FloorPro is, prerequisites, setup and run commands (link to `specs/001-settings-customer-records/quickstart.md`), and where the data is stored.
+- [X] T073 Accessibility pass across `src/floorpro/templates/`:
   - every input has a `<label>`, and errors are linked via `aria-describedby`
   - focus is visible on every interactive element
   - dialogs trap focus and close on Escape
