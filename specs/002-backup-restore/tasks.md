@@ -269,6 +269,7 @@ identical to the backed-up state and a Before restore backup exists. Then corrup
   - **Startup clean-up**: call `backup_service.cleanup_partials()`
 - [ ] T032 [US2] Add `GET /backups/{loc}/{name}/restore` and `POST /backups/{loc}/{name}/restore` to `src/floorpro/routes/backups.py` per contracts/routes.md, using `parse_restore_confirm`:
   - **Errors**: `NotABackup`, `BackupDamaged`, `BackupTooNew`, `WrongPassword`, `RestoreFailed` and `BackupBusy` → `422` dialog with the exact message, returned into `#modal`
+  - **Unprotected legacy copies**: `GET` shows the refusal "This older copy isn't protected. It can only be restored from the recovery screen." with no Restore button, and `POST` → `422` with data unchanged
   - **Success**: `HX-Redirect: /` + the flash cookie "Restored the backup from {created_at | local_datetime}"
   - **No session**: restore routes MUST NOT use `Depends(get_session)`. They call only `backup_service`
 - [ ] T033 [US2] Create `src/floorpro/routes/recovery.py` (`GET /recovery`, `POST /recovery/restore`, `POST /recovery/start-fresh`; every route → 404 when not in recovery) and register it in `app.py`. Create `src/floorpro/templates/recovery/index.html` as a standalone page that doesn't extend the nav layout and uses no `request.state.settings`. It reuses the shared button/field/card/table components, CSS and fonts. `recovery/_restore_form.html` holds the password field when needed. After success, call `app.state.reopen_database()` and redirect `303 /` with the flash. Recovery routes MUST NOT use `Depends(get_session)`; they call only `recovery_service`/`backup_service`. The **Restore this backup** and **Start with no data** buttons use `hx-indicator` with a "Restoring… this can take up to 30 seconds" (or "Starting…") spinner (CSS `.htmx-request` only) and `hx-disabled-elt="this"`
@@ -279,7 +280,7 @@ identical to the backed-up state and a Before restore backup exists. Then corrup
   - **Refusal mode**: shows the refusal message and only a Close button
   - **Form**: posts to the action passed in, either `/backups/{loc}/{name}/restore` or `/backups/restore-file/confirm` with a hidden `source_token`, so US4 can reuse it
   - **Progress**: the Restore button uses `hx-indicator` with a "Restoring… this can take up to 30 seconds" spinner (CSS `.htmx-request` only, no new JS), plus `hx-disabled-elt="this"` so it can't be pressed twice
-- [ ] T035 [US2] Add a **Restore** action to each restorable row in `src/floorpro/templates/backups/_list.html`. It uses `hx-get` to the confirm dialog with `hx-target="#modal"`. There's no action for damaged rows
+- [ ] T035 [US2] Add a **Restore** action to each restorable row in `src/floorpro/templates/backups/_list.html`. It uses `hx-get` to the confirm dialog with `hx-target="#modal"`. There's no action for damaged rows or unprotected (legacy `.db`) rows, which can only be restored in recovery mode
 
 **Checkpoint**: **MVP complete (US5 + US1 + US2)**. The constitution's release blocker is met
 for the local computer.

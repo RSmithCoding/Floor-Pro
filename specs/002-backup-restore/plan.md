@@ -81,7 +81,7 @@ of backups. About 8 new screens or dialogs.
 | VI | Layering | Routes → `backup_service`/`recovery_service` → `backup_file` (format) + `domain/backups.py` (pure rules) | ✅ | ✅ |
 | VI | Single process; no background workers without justification | One short-lived thread per automatic backup. **Justified in Complexity Tracking** | ⚠️ | ✅ |
 | VI | Justified, PyInstaller-compatible dependencies | `cryptography`: unavoidable for encryption (no AES in stdlib), wheels for macOS/Windows, PyInstaller hook built in | ✅ | ✅ |
-| Platform | `pathlib`, data dir, platform code isolated | Native dialogs stay in `desktop.py`. File format is OS-independent. Atomic writes via `os.replace` (works on both OSes) | ✅ | ✅ |
+| Platform | `pathlib`, data dir, platform code isolated | Data and FloorPro's own backups stay in the app-data directory; the chosen folder and saved copies are permitted by constitution v1.1.1 and are always encrypted. Native dialogs stay in `desktop.py`. File format is OS-independent. Atomic writes via `os.replace` (works on both OSes) | ✅ | ✅ |
 | Platform | Logging without unnecessary customer data | Logs record file names, sizes and errors. Never passwords, keys or record contents | ✅ | ✅ |
 | Workflow | CI on macOS + Windows | Unchanged workflow. The new fixture test runs on both | ✅ | ✅ |
 
