@@ -635,7 +635,7 @@ preferences, the filter, and that trade can't turn the breakdown off (quickstart
   - the `#toasts` region is `aria-live`
   - token colour pairs in `src/floorpro/static/css/input.css` are checked at 4.5:1 or better
 - [X] T074 Run `uv run ruff check .`, `uv run ruff format --check .` and `uv run pytest` locally and fix any failures. Then push and confirm both the `macos-latest` and `windows-latest` CI jobs pass.
-- [ ] T075 Run the quickstart.md manual scenarios A–D, including §B.8 (unsaved changes) and §B.9 (persistence), in the desktop window (`uv run python -m floorpro`) on macOS, and record any deviations as follow-up issues.
+- [X] T075 Run the quickstart.md manual scenarios A–D, including §B.8 (unsaved changes) and §B.9 (persistence), in the desktop window (`uv run python -m floorpro`) on macOS, and record any deviations as follow-up issues.
 
 ---
 
