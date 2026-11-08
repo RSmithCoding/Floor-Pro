@@ -55,11 +55,14 @@ decision, the reason for it, and the alternatives considered.
 
 ## 4. Customer reference numbers
 
-- **Decision**: The `customer` table uses `INTEGER PRIMARY KEY AUTOINCREMENT`, and the
-  reference is derived as `C-{id:05d}` (`C-00042`). The reference is stored in a unique,
-  indexed column so it can be searched. Numbers grow past 5 digits naturally (`C-123456`).
+- **Decision**: `customer.id` is `INTEGER PRIMARY KEY AUTOINCREMENT`. The reference
+  `C-{id:05d}` (`C-00042`) is **computed, not stored**. Search parses reference-shaped input
+  (`C-00042`, `c42`) into an id lookup. Numbers grow past 5 digits naturally (`C-123456`).
 - **Rationale**: SQLite's `AUTOINCREMENT` guarantees an id is never reused, even after the
-  highest row is deleted (FR-013). No separate counter table is needed.
+  highest row is deleted (FR-013). Storing a reference that depends on the generated id would
+  need an insert followed by an update, and a NOT NULL column can't be empty in between.
+  Working it out from the id avoids the problem and can never get out of step with the id.
+  No separate counter table is needed.
 - **Alternatives considered**: A separate counter table (more moving parts for the same
   guarantee). UUIDs (not human-friendly at a shop counter).
 
@@ -68,7 +71,8 @@ decision, the reason for it, and the alternatives considered.
 - **Decision**: Plain indexed `LIKE` queries over normalised search columns:
   `mobile_phone_digits` / `other_phone_digits` (digits only, with a leading `+44` mapped to
   `0`), `postcode_compact` (upper case, no spaces), plus case-insensitive (`COLLATE NOCASE`)
-  name, company, email and reference. The query box sends requests with HTMX on `input`,
+  name, company and email. Reference-shaped input (`C-00042`, `c42`) also matches by id
+  (see §4). The query box sends requests with HTMX on `input`,
   debounced by 250 ms. Results are capped at 50 rows, with a "showing 50 of N" note.
 - **Rationale**: At 10,000 customers a `LIKE '%term%'` scan over a few short columns takes
   milliseconds in SQLite, well inside SC-002 (1 s) and the constitution's 300 ms response
@@ -111,6 +115,10 @@ decision, the reason for it, and the alternatives considered.
   - **Domestic ↔ trade switching**: the VAT-breakdown checkbox group is re-rendered by the
     server (`hx-get` on change), so it's locked on for trade with no client-side logic. The
     server enforces the same rule on save.
+  - **Boosting exceptions**: forms and links that open a dialog use explicit
+    `hx-get`/`hx-post` with `hx-target="#modal"` and `hx-swap="innerHTML"`, which overrides
+    `hx-boost`. The export link has `hx-boost="false"` so the webview handles it as a file
+    download.
 - **Custom JavaScript** (justified per Principle IV): one small file, `static/js/app.js` (under
   40 lines), that (a) calls `showModal()` on a swapped-in `<dialog>`, since a native modal
   can't be opened from HTML alone, and (b) warns before leaving a form with unsaved changes (a
@@ -230,6 +238,21 @@ decision, the reason for it, and the alternatives considered.
   UK format (`7 Nov 2026, 14:05`). Formatting is handled by Jinja filters.
 - **Rationale**: Clocks change (BST/GMT). UTC storage keeps the settings history ordering
   correct.
+
+---
+
+## 15. Messages after a save
+
+- **Decision**: After a successful write, HTMX requests get **no redirect**. The server
+  renders the destination page directly, sets `HX-Push-Url: /customers/{id}` so the address
+  bar updates, and includes the toast fragment. Plain (non-HTMX) requests get `303` plus a
+  short-lived **signed cookie** `flash` (HMAC with `paths.secret_key()`), which the next page
+  shows once and then clears.
+- **Rationale**: Browsers discard the body of a redirect response, so a toast attached to it
+  is never shown. Rendering the destination directly is also one request faster.
+- **Alternatives considered**: Starlette `SessionMiddleware` (adds `itsdangerous` and a full
+  session just for one message). A `?toast=` query string (the message ends up in the address
+  and history).
 
 ---
 

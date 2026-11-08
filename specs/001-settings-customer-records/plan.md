@@ -60,7 +60,7 @@ partials in this feature.
 |---|------------------|------------------------|:---------:|:-----------:|
 | I | Local-first, offline | SQLite in `platformdirs` user data dir. No network calls (email DNS checks off) | ✅ | ✅ |
 | I | Schema changes via Alembic, no data loss | `0001_initial` migration. Migrations run at startup | ✅ | ✅ |
-| I | Backup & restore. Auto backup before migrations | Pre-migration backup delivered here. **User-facing backup/restore is a later feature** (scope note, not a violation: no user data is at risk before this feature ships, and it's tracked in Next Steps) | ✅ | ✅ |
+| I | Backup & restore. Auto backup before migrations | Pre-migration backup delivered here. **User-facing backup/restore is a later feature** (scope note, not a violation: no user data is at risk before this feature ships). **Release blocker**: backup and restore must ship before the first release to any shop. Tracked as the next feature spec after this one | ✅ | ✅ |
 | I | Confirm destructive actions. Archive vs delete | `<dialog>` confirmations for archive/erase. Erase requires typing the name | ✅ | ✅ |
 | I | Personal data exportable & erasable | `GET /customers/{id}/export` (JSON contract) and erase flow | ✅ | ✅ |
 | II | `Decimal`, no floats. One rounding module | `domain/money.py` + `Money`/`Percent` TypeDecorators over integers | ✅ | ✅ |
@@ -188,6 +188,9 @@ project: the UI is server-rendered from the same package.
 - **Settings confirmation**: `/settings/confirm` uses a token (HMAC of the staged values plus
   the current `updated_at`) so a stale dialog can't overwrite newer settings.
 - **Signing key**: created once per install and stored in the data dir.
+- **Messages after a save**: see research §15. **Dialogs and downloads**: explicit
+  `hx-target="#modal"`, and `hx-boost="false"` for export (research §7).
+- **Customer reference**: computed from `id`, not stored (research §4).
 - **Erase**: hard delete in this feature, with the `has_linked_records()` hook in place (see
   research §12).
 
@@ -195,7 +198,7 @@ project: the UI is server-rendered from the same package.
 
 - `/speckit-tasks` to produce `tasks.md` for this plan.
 - **Later features**:
-  - user-facing backup and restore (Principle I)
+  - user-facing backup and restore (required before first release, Principle I)
   - PyInstaller packaging for macOS and Windows, including the universal2 / Apple Silicon
     decision
   - business details for invoices (name, address, logo, bank details)

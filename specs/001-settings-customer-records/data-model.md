@@ -66,7 +66,6 @@ A person or business the shop deals with (spec: Customer, FR-011–FR-029).
 | Field | Type (DB) | Rules |
 |-------|-----------|-------|
 | `id` | INTEGER PK AUTOINCREMENT | Never reused (FR-013) |
-| `reference` | TEXT NOT NULL UNIQUE | `C-{id:05d}`, set right after insert in the same transaction. Indexed, `NOCASE` |
 | `customer_type` | TEXT NOT NULL | `CHECK (customer_type IN ('domestic','trade'))`. Default `'domestic'` (FR-025) |
 | `show_vat_breakdown` | INTEGER NOT NULL | Default `0`. `CHECK (customer_type = 'domestic' OR show_vat_breakdown = 1)` (FR-026) |
 | `title` | TEXT NULL | Free text up to 20 chars (Mr, Mrs, Ms, Dr, …) |
@@ -99,6 +98,9 @@ A person or business the shop deals with (spec: Customer, FR-011–FR-029).
 - The VAT-breakdown check above enforces FR-026 even if the service has a bug.
 
 **Derived values (not stored)**
+- `reference`: `C-{id:05d}` (e.g. `C-00042`), computed from `id`, which `AUTOINCREMENT`
+  never reuses (FR-013). Search recognises `C-00042`, `c42` and `C42` (regex
+  `^c-?0*(\d+)$`, case-insensitive) and matches on `id`.
 - `display_name`: company name if set, otherwise "First Last". When both are present the list
   shows "Company (First Last)".
 - `sort_name`: `last_name, first_name` or the company name, used for "sort by name"
@@ -149,7 +151,7 @@ links will drive `has_linked_records()` and the anonymise path.
 
 ## Indexes summary
 
-`customer`: `reference` (unique), `last_name`, `company_name`, `email`,
+`customer`: `last_name`, `company_name`, `email`,
 `mobile_phone_digits`, `other_phone_digits`, `postcode_compact`,
 `(is_archived, customer_type)`.
 `settings_change`: `changed_at`.

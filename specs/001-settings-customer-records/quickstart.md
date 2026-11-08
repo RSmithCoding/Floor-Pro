@@ -57,7 +57,7 @@ Run these in the desktop window. Each maps to the spec's acceptance scenarios.
 1. **First run defaults**: on a fresh data folder, open **Settings**. Expect GBP (£), VAT
    registered ticked, VAT rate 20, price entry mode "Prices include VAT".
 2. **Change the VAT rate**: set the rate to `17.5` and save. Expect a confirmation dialog
-   showing "VAT rate: 20.00% → 17.50%" and "applies to new quotes and invoices only".
+   showing "VAT rate: 20% → 17.5%" and "applies to new quotes and invoices only".
    Confirm. Expect a "Settings saved" toast and a new row in the history.
 3. **Invalid rates**: try `-5`, `150` and `abc`. Each is blocked with "Enter a VAT rate
    between 0 and 100, with up to two decimal places."
@@ -71,7 +71,7 @@ Run these in the desktop window. Each maps to the spec's acceptance scenarios.
 ### B. Add and find customers (User Story 1)
 
 1. **Add a customer**: Customers → **Add customer** → enter `Jane Smith`, mobile
-   `07700 900123`, postcode `bs1 4dj` → save. Expect a redirect to the record showing
+   `07700 900123`, postcode `bs1 4dj` → save. Expect to be taken to the record showing
    reference `C-00001`, postcode `BS1 4DJ` and type Domestic.
 2. **Missing name**: save with no name and no company. Expect the error next to the name
    fields.
@@ -83,6 +83,11 @@ Run these in the desktop window. Each maps to the spec's acceptance scenarios.
 6. **Duplicate warning**: add a new customer with mobile `07700 900123`. Expect a warning
    linking to C-00001 and a **Save anyway** option.
 7. **No results**: search `zzz`. Expect the empty state with "Add 'zzz' as a new customer".
+8. **Unsaved changes**: start adding a customer, type a name, then click **Settings** in the
+   nav. Expect a "You have unsaved changes. Discard them?" dialog. **Keep editing** stays on
+   the form. **Discard** leaves the form.
+9. **Persistence**: quit and relaunch. Expect every customer you added to still be there with
+   all details.
 
 ### C. Domestic and trade (User Story 4)
 

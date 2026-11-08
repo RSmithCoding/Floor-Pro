@@ -163,8 +163,9 @@ customer's VAT breakdown preference can't be turned off.
 - User leaves a customer form with unsaved changes: asked whether to discard them.
 - VAT rate changed to 0%: allowed (differs from "not VAT registered" in that the VAT line still
   appears on documents at 0%).
-- Settings data missing or unreadable on startup: the app restores the defaults (GBP, 20%) and
-  tells the user it did so.
+- Settings data missing on startup: the app restores the defaults (GBP, 20%) and tells the
+  user it did so. (Recovering from a corrupted database file belongs to the future backup and
+  restore feature.)
 
 ## Requirements *(mandatory)*
 
@@ -181,7 +182,7 @@ customer's VAT breakdown preference can't be turned off.
 - **FR-004**: System MUST accept VAT rates from 0% to 100% inclusive, with up to two decimal
   places, and reject anything else with a clear message.
 - **FR-005**: System MUST accept a VAT registration number when the business is VAT
-  registered, and check that a UK number has a valid format (GB followed by 9 digits, or 12
+  registered (optional, since it can be added later), and check that a UK number has a valid format (GB followed by 9 digits, or 12
   digits for branch traders).
 - **FR-006**: System MUST ask the user to confirm before saving a change to currency or VAT,
   stating that the change affects only new quotes and invoices.
@@ -210,7 +211,7 @@ customer's VAT breakdown preference can't be turned off.
 - **FR-014**: System MUST check email addresses for a valid format and store UK postcodes in
   standard upper-case format with a single space.
 - **FR-015**: System MUST warn staff about possible duplicates when a new customer's phone
-  number or email matches an existing customer, and let them open the existing record or save
+  number or email, or an edited one, matches an existing customer, and let them open the existing record or save
   anyway.
 - **FR-016**: Staff MUST be able to search customers by any part of the name, company name,
   phone number (ignoring spaces and punctuation), email, postcode, or customer reference. The
@@ -224,7 +225,8 @@ customer's VAT breakdown preference can't be turned off.
 - **FR-020**: Staff MUST be able to export all data held about a single customer to a
   human-readable file.
 - **FR-021**: Staff MUST be able to erase a customer after a confirmation step that requires
-  typing the customer's name. Customers with no linked records are permanently deleted.
+  typing the customer's name (either the person's name or the company name). Customers with
+  no linked records are permanently deleted.
   Customers with linked financial records have their personal details anonymised while those
   records are kept.
 - **FR-022**: The customer record screen MUST include a space where later features will list
