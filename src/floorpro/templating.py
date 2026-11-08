@@ -11,7 +11,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from jinja2 import pass_context
 
@@ -60,6 +60,25 @@ def local_date_filter(value: datetime | None) -> str:
     return f"{local.day} {local:%b %Y}"
 
 
+def filesize_filter(size: int | None) -> str:
+    """Bytes -> "980 bytes", "12 KB", "2.4 MB", "1.1 GB" (1,024 steps)."""
+    if size is None:
+        return ""
+    if size < 1024:
+        return f"{size:,} bytes"
+    if size < 1024**2:
+        return f"{round(size / 1024):,} KB"
+    if size < 1024**3:
+        return f"{size / 1024**2:,.1f} MB"
+    return f"{size / 1024**3:,.1f} GB"
+
+
+def thousands_filter(value: int | None) -> str:
+    return "" if value is None else f"{value:,}"
+
+
+templates.env.filters["filesize"] = filesize_filter
+templates.env.filters["thousands"] = thousands_filter
 templates.env.filters["money"] = money_filter
 templates.env.filters["percent"] = percent_filter
 templates.env.filters["local_datetime"] = local_datetime_filter
@@ -105,12 +124,24 @@ def _decode_flash(value: str) -> Toast | None:
         return None
 
 
-def flash_redirect(url: str, kind: str, message: str) -> RedirectResponse:
-    response = RedirectResponse(url, status_code=303)
+def set_flash(response: Response, kind: str, message: str) -> Response:
     response.set_cookie(
         FLASH_COOKIE, _encode_flash((kind, message)), max_age=60, httponly=True, samesite="lax"
     )
     return response
+
+
+def flash_redirect(url: str, kind: str, message: str) -> RedirectResponse:
+    response = RedirectResponse(url, status_code=303)
+    set_flash(response, kind, message)
+    return response
+
+
+def htmx_redirect(request: Request, url: str, kind: str, message: str) -> Response:
+    """Full-page navigation after success: HX-Redirect for HTMX, else 303; both carry a flash."""
+    if is_htmx(request):
+        return set_flash(Response(status_code=200, headers={"HX-Redirect": url}), kind, message)
+    return flash_redirect(url, kind, message)
 
 
 def pop_flash(request: Request) -> Toast | None:

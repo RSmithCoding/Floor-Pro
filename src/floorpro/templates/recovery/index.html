@@ -1,0 +1,99 @@
+{#- Standalone page: no navigation and no settings from the database (it can't be read). -#}
+{% from "components/toast.html" import toast %}
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button %}
+{% from "components/field.html" import field %}
+{%- set spinner = '<svg class="size-4 animate-spin" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M17 10a7 7 0 0 0-7-7" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>' %}
+<!DOCTYPE html>
+<html lang="en-GB" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"(404|409|422)","swap":true},{"code":"[45]..","swap":true,"error":true}],"historyCacheSize":0}'>
+  <title>Recovery · FloorPro</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/htmx.min.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+</head>
+<body class="h-full bg-ink-50" hx-boost="true">
+  <main id="main" class="mx-auto max-w-3xl px-6 py-10">
+    <div class="flex items-center gap-2.5">
+      <span class="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-white" aria-hidden="true">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3h7v7H2V3Zm9 0h7v4h-7V3Zm0 6h7v8h-7V9ZM2 12h7v5H2v-5Z"/></svg>
+      </span>
+      <span class="text-lg font-semibold tracking-tight text-ink-900">FloorPro</span>
+    </div>
+    <h1 class="mt-8 text-2xl font-semibold tracking-tight text-ink-900">Your shop's data needs recovering</h1>
+    <p class="mt-2 text-sm text-ink-700">{{ info.reason if info else "" }} Nothing has been deleted. Restore a backup to carry on where you left off.</p>
+
+    {%- if error %}
+    <p class="mt-4 rounded-card bg-danger-50 p-4 text-sm text-danger-700 ring-1 ring-danger-600/30" role="alert">{{ error }}</p>
+    {%- endif %}
+
+    <div class="mt-6 space-y-6">
+      {%- if latest %}
+      {% call card("Most recent backup") %}
+        <p class="text-sm text-ink-700"><span class="font-medium text-ink-900">{{ latest.created_at|local_datetime }}</span> · {{ latest.kind.label }} · {{ latest.customers|thousands }} customer{{ "" if latest.customers == 1 else "s" }}</p>
+        {% set needs_password = latest.needs_password(current_key_id) %}
+        <form method="post" action="/recovery/restore" class="mt-4 space-y-4" hx-indicator="#recovery-progress" hx-disabled-elt="find button[type=submit]">
+          <input type="hidden" name="loc" value="{{ latest.location }}">
+          <input type="hidden" name="name" value="{{ latest.filename }}">
+          {%- if needs_password %}
+          {{ field("password", "Backup password", type="password", autocomplete="off",
+                   hint="Enter the password this backup was made with.") }}
+          {%- endif %}
+          {{ button("Restore this backup", type="submit") }}
+          <p id="recovery-progress" class="htmx-indicator flex items-center gap-2 text-sm text-ink-600" aria-live="polite">{{ spinner|safe }}<span>Restoring… this can take up to 30 seconds</span></p>
+        </form>
+      {% endcall %}
+      {%- endif %}
+
+      {%- if backups|length > 1 %}
+      {% call card("Other backups", padded=False) %}
+        <ul class="divide-y divide-ink-100">
+          {%- for b in backups[1:] %}
+          <li class="px-5 py-3">
+            <form method="post" action="/recovery/restore" class="flex flex-wrap items-center gap-3" hx-indicator="#recovery-progress" hx-disabled-elt="find button[type=submit]">
+              <input type="hidden" name="loc" value="{{ b.location }}">
+              <input type="hidden" name="name" value="{{ b.filename }}">
+              <span class="flex-1 text-sm text-ink-700"><span class="font-medium text-ink-900">{{ b.created_at|local_datetime }}</span> · {{ b.kind.label }} · {{ b.customers|thousands }} customers</span>
+              {%- if b.needs_password(current_key_id) %}
+              <label class="sr-only" for="password-{{ loop.index }}">Backup password for {{ b.created_at|local_datetime }}</label>
+              <input id="password-{{ loop.index }}" name="password" type="password" autocomplete="off" placeholder="Backup password" class="rounded-control border-0 px-3 py-1.5 text-sm ring-1 ring-inset ring-ink-300">
+              {%- endif %}
+              {{ button("Restore", variant="secondary", size="sm", type="submit", aria_label="Restore the backup from " ~ (b.created_at|local_datetime)) }}
+            </form>
+          </li>
+          {%- endfor %}
+        </ul>
+      {% endcall %}
+      {%- endif %}
+
+      {% call card("Restore from a file…", "A backup saved on a USB drive, in a cloud folder, or copied from another computer.") %}
+        {%- if desktop %}
+        {{ button("Choose a backup file…", variant="secondary", hx_post="/recovery/restore-file/choose", hx_target="#modal", hx_swap="innerHTML") }}
+        {%- else %}
+        <form hx-post="/recovery/restore-file/upload" hx-encoding="multipart/form-data" hx-target="#modal" hx-swap="innerHTML" class="flex flex-wrap items-center gap-2">
+          <label for="restore-file" class="text-sm font-medium text-ink-700">Backup file</label>
+          <input id="restore-file" name="file" type="file" accept=".fpbackup" required class="text-sm text-ink-700">
+          {{ button("Open", variant="secondary", size="sm", type="submit") }}
+        </form>
+        {%- endif %}
+      {% endcall %}
+
+      {% call card("Start with no data", "Only if there's no backup at all. The damaged data is kept, never deleted.") %}
+        <form method="post" action="/recovery/start-fresh" class="max-w-sm space-y-4" hx-indicator="#start-progress" hx-disabled-elt="find button[type=submit]">
+          {{ field("confirm", "Type START AGAIN to confirm", error=(start_errors or {}).get("confirm"), autocomplete="off") }}
+          {{ button("Start with no data", variant="danger", type="submit") }}
+          <p id="start-progress" class="htmx-indicator flex items-center gap-2 text-sm text-ink-600" aria-live="polite">{{ spinner|safe }}<span>Starting…</span></p>
+        </form>
+      {% endcall %}
+    </div>
+  </main>
+
+  <div id="modal">{%- if dialog %}{% include dialog %}{% endif %}</div>
+  <div id="toasts" aria-live="polite" class="pointer-events-none fixed bottom-6 right-6 z-50 flex w-full max-w-sm flex-col gap-2">
+    {%- for kind, message in toasts or [] %}{{ toast(kind, message) }}{% endfor %}
+  </div>
+</body>
+</html>

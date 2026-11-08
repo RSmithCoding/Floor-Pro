@@ -25,7 +25,7 @@ dist/
 *.db-shm
 *.sqlite
 *.sqlite3
-backups/
+/backups/
 logs/
 *.log
 
@@ -56,3 +56,8 @@ desktop.ini
 # --- Generated CSS and dev database ---
 src/floorpro/static/css/app.css
 dev-data/
+
+# --- Backup files (feature 002); the committed test fixture is the exception ---
+*.fpbackup
+!tests/fixtures/*.fpbackup
+*.partial

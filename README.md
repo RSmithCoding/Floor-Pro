@@ -14,7 +14,17 @@ the shop's own computer.
   Customers are **domestic** or **trade**; trade customers always get a VAT breakdown.
 - **Settings**: currency (default GBP), VAT registration, VAT rate (default 20%), VAT
   number and price entry mode, with a confirmed, date-stamped change history.
-- **Dashboard**: quick customer search, with space for appointments and invoices to come.
+- **Backups**: every backup is protected with the shop's backup password. **Back up now**,
+  plus one automatic backup each day (the last 14 are kept). Backups can go to a folder you
+  choose, such as a USB drive or a cloud-synced folder, and **Save a copy to…** puts a copy
+  anywhere. **Restore** any backup, or a backup file from another computer (**Restore from a
+  file…**), without restarting. If the data can't be opened at startup, a recovery screen
+  offers to restore the latest backup.
+- **Dashboard**: quick customer search, a backup status card, and space for appointments and
+  invoices to come.
+
+> **Keep your backup password safe.** There is no way to recover it. If it's forgotten, the
+> backups made with it can never be restored, by you or by anyone else.
 
 ## Requirements
 
@@ -52,16 +62,27 @@ uv run python scripts/build_css.py --watch
 | macOS | `~/Library/Application Support/FloorPro/` |
 | Windows | `%LOCALAPPDATA%\FloorPro\` |
 
-The folder holds the database (`floorpro.db`), automatic backups taken before every
-database upgrade (`backups/`, the 10 most recent are kept) and log files (`logs/`). To start
-from scratch, quit FloorPro and move the folder somewhere else.
+The folder holds:
+
+| Item | What it is |
+|------|------------|
+| `floorpro.db` | the shop's data |
+| `backups/` | protected backups (`.fpbackup`) made on this computer, including those taken before every database upgrade (the 10 most recent of those are kept) |
+| `backup-key.json` | the key derived from the backup password (never the password itself); it never leaves this computer |
+| `backup-settings.json` | backup preferences: automatic on/off, the chosen folder, last results |
+| `tmp/` | scratch space for backups in progress, emptied at startup |
+| `damaged/` | data that couldn't be opened, moved aside by the recovery screen (never deleted) |
+| `logs/` | log files |
+
+To start from scratch, quit FloorPro and move the folder somewhere else.
 
 ## Checks
 
 ```bash
 uv run ruff check .          # lint
 uv run ruff format --check . # formatting
-uv run pytest                # all tests, including a 10,000-customer search speed test
+uv run pytest                # all tests, including 10,000-customer speed tests
+uv run pytest -m "not slow"  # quick run, without the speed tests
 ```
 
 GitHub Actions runs the same checks on macOS and Windows for every push.

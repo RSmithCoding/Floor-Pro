@@ -1,0 +1,18 @@
+{% from "components/modal.html" import modal, modal_actions %}
+{% from "components/button.html" import button %}
+{% call modal("Delete this backup?" if not cannot_delete else "This backup can't be deleted", id="delete-dialog") %}
+  {%- if cannot_delete %}
+  <p>This is your most recent backup, so it can't be deleted. Make a newer backup first if you want to remove it.</p>
+  {% call modal_actions() %}
+    {{ button("Close", variant="secondary", data_close_dialog=True) }}
+  {% endcall %}
+  {%- else %}
+  <p>Delete the backup from {{ backup.created_at|local_datetime }}? This can't be undone.</p>
+  <form method="post" action="{{ action }}">
+    {% call modal_actions() %}
+      {{ button("Cancel", variant="secondary", data_close_dialog=True) }}
+      {{ button("Delete backup", variant="danger", type="submit") }}
+    {% endcall %}
+  </form>
+  {%- endif %}
+{% endcall %}

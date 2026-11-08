@@ -1,0 +1,63 @@
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button %}
+{% from "components/field.html" import field %}
+{% from "components/checkbox.html" import checkbox %}
+{%- set spinner = '<svg class="size-4 animate-spin" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M17 10a7 7 0 0 0-7-7" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>' %}
+<div id="backup-panel" class="grid gap-6 lg:grid-cols-3">
+  {% call card("Back up now", "A protected copy of everything: customers, settings and history.") %}
+    <form method="post" action="/backups" hx-indicator="#backup-progress" hx-disabled-elt="find button">
+      {{ button("Back up now", type="submit") }}
+    </form>
+    <p id="backup-progress" class="htmx-indicator mt-3 flex items-center gap-2 text-sm text-ink-600" aria-live="polite">{{ spinner|safe }}<span>Backing up…</span></p>
+    {%- if latest %}
+    <p class="mt-3 text-sm text-ink-600">Last backup: {{ latest.created_at|local_datetime }}</p>
+    {%- endif %}
+  {% endcall %}
+
+  {% call card("Where backups are saved") %}
+    {%- if folder %}
+    <p class="text-sm text-ink-700">Saving to: <span class="font-medium break-all">{{ folder.path }}</span></p>
+    {%- if not folder.reachable %}
+    <p class="mt-2 text-sm text-warning-800">This folder can't be reached right now. Is the drive plugged in?</p>
+    {%- endif %}
+    {%- else %}
+    <p class="text-sm text-ink-700">Saving to: <span class="font-medium">This computer</span></p>
+    <p class="mt-1 text-sm text-ink-500">Choose a USB drive or a cloud-synced folder to keep copies away from this computer.</p>
+    {%- endif %}
+    <div class="mt-4 flex flex-wrap gap-2">
+      {%- if desktop %}
+      <form method="post" action="/backups/folder/choose">{{ button("Choose folder…", variant="secondary", size="sm", type="submit") }}</form>
+      {%- endif %}
+      {%- if folder %}
+      <form method="post" action="/backups/folder/reset">{{ button("Use this computer", variant="ghost", size="sm", type="submit") }}</form>
+      {%- endif %}
+    </div>
+    {%- if not desktop %}
+    <form method="post" action="/backups/folder" class="mt-4 space-y-3">
+      {{ field("folder", "Backup folder", folder_value or "", error=folder_error,
+               hint="The full path of a folder, for example on a USB drive.") }}
+      {{ button("Save folder", variant="secondary", size="sm", type="submit") }}
+    </form>
+    {%- endif %}
+  {% endcall %}
+
+  {% call card("Automatic backups") %}
+    <form hx-post="/backups/automatic" hx-trigger="change" hx-target="body" hx-swap="innerHTML">
+      {{ checkbox("auto_enabled", "Back up automatically", checked=prefs.auto_enabled,
+                  hint="Makes one backup each day you use FloorPro, and keeps the last 14.") }}
+    </form>
+  {% endcall %}
+</div>
+
+<div class="flex flex-wrap items-center gap-3">
+  {%- if desktop %}
+  {{ button("Restore from a file…", variant="secondary", hx_post="/backups/restore-file/choose", hx_target="#modal", hx_swap="innerHTML") }}
+  {%- else %}
+  <form hx-post="/backups/restore-file/upload" hx-encoding="multipart/form-data" hx-target="#modal" hx-swap="innerHTML" class="flex flex-wrap items-center gap-2">
+    <label for="restore-file" class="text-sm font-medium text-ink-700">Restore from a file…</label>
+    <input id="restore-file" name="file" type="file" accept=".fpbackup" required class="text-sm text-ink-700">
+    {{ button("Open", variant="secondary", size="sm", type="submit") }}
+  </form>
+  {%- endif %}
+  {{ button("Change password", variant="ghost", hx_get="/backups/password/change", hx_target="#modal", hx_swap="innerHTML") }}
+</div>

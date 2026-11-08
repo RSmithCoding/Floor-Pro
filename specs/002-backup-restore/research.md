@@ -78,6 +78,14 @@ macOS (Intel and Apple Silicon) and Windows, and PyInstaller has built-in hooks 
 standard library has no AES, so one dependency is unavoidable for FR-026. Using stdlib scrypt
 means only the cipher comes from the dependency.
 
+**Packaging check** (T054): PyInstaller's bundled hooks (`pyinstaller-hooks-contrib`) cover
+`cryptography`, including its Rust extension and OpenSSL. `backup_file` imports only
+`cryptography.hazmat.primitives.ciphers.aead.AESGCM` and `cryptography.exceptions.InvalidTag`.
+The dependency is capped below 49 (`cryptography>=48.0.1,<49`): release 48.0.1 is the last with
+Intel macOS (`universal2`) wheels, and FloorPro must keep running on Intel Macs (macOS 12).
+Revisit the cap when Intel Mac support is dropped, or build from source if a security fix
+needs a newer release. No packaging configuration is added yet (packaging is a later feature).
+
 **Alternatives considered**: PBKDF2 (weaker against GPU attacks at the same cost); Argon2
 (needs a second dependency, `argon2-cffi`); a pure-Python AES (slow and unaudited); PyNaCl
 (also native, no benefit over `cryptography`).

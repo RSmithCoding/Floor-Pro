@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Backups · FloorPro{% endblock %}
+{% block content %}
+<div>
+  <h1 class="text-2xl font-semibold tracking-tight text-ink-900">Backups</h1>
+  <p class="mt-1 text-sm text-ink-600">Protected copies of all your shop's data, to restore if anything goes wrong.</p>
+</div>
+
+<div class="mt-6 space-y-6">
+  {%- if key_set %}
+  {% include "backups/_panel.html" %}
+  {% include "backups/_list.html" %}
+  {%- else %}
+  {% include "backups/_set_password.html" %}
+  {%- endif %}
+</div>
+{%- if dialog %}{% include dialog %}{% endif %}
+{% endblock %}

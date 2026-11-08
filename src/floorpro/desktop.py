@@ -11,7 +11,6 @@ import threading
 import time
 import urllib.request
 import webbrowser
-from collections.abc import Callable
 from pathlib import Path
 
 import uvicorn
@@ -39,28 +38,55 @@ def wait_until_up(url: str, timeout: float = 10.0) -> None:
     raise RuntimeError("FloorPro's local server did not start in time")
 
 
-def _native_saver(webview, window) -> Callable[[str, bytes], Path | None]:
-    """Save files through the native Save dialog.
+def _documents_dir() -> Path:
+    documents = Path.home() / "Documents"
+    return documents if documents.is_dir() else Path.home()
 
-    The embedded web view opens files it can display (such as JSON) instead of downloading
-    them, and the window has no Back button, so FloorPro never navigates to a file.
-    pywebview marshals the dialog onto the GUI thread, so this is safe to call from a request.
+
+def _first_path(result) -> Path | None:
+    """pywebview returns a str, a tuple/list of str, or None when cancelled."""
+    if not result:
+        return None
+    return Path(result if isinstance(result, str) else result[0])
+
+
+class NativeDialogs:
+    """Native Save, folder and Open dialogs for the desktop window (``app.state.dialogs``).
+
+    The embedded web view opens files it can display instead of downloading them, and the
+    window has no Back button, so FloorPro uses native dialogs rather than navigating to files.
+    pywebview marshals each dialog onto the GUI thread, so these are safe to call from a request.
+    Every method returns the chosen path, or ``None`` if the user cancelled.
     """
 
-    def save_file(filename: str, data: bytes) -> Path | None:
-        documents = Path.home() / "Documents"
-        result = window.create_file_dialog(
-            webview.FileDialog.SAVE,
-            directory=str(documents if documents.is_dir() else Path.home()),
+    BACKUP_FILE_TYPES = ("FloorPro backups (*.fpbackup)", "All files (*.*)")
+
+    def __init__(self, webview, window):
+        self._webview = webview
+        self._window = window
+
+    def save_path(self, filename: str) -> Path | None:
+        result = self._window.create_file_dialog(
+            self._webview.FileDialog.SAVE,
+            directory=str(_documents_dir()),
             save_filename=filename,
         )
-        if not result:
-            return None
-        path = Path(result if isinstance(result, str) else result[0])
-        path.write_bytes(data)
-        return path
+        return _first_path(result)
 
-    return save_file
+    def choose_folder(self) -> Path | None:
+        result = self._window.create_file_dialog(
+            self._webview.FileDialog.FOLDER, directory=str(_documents_dir())
+        )
+        return _first_path(result)
+
+    def open_file(self) -> Path | None:
+        result = self._window.create_file_dialog(
+            self._webview.FileDialog.OPEN,
+            directory=str(_documents_dir()),
+            allow_multiple=False,
+            file_types=self.BACKUP_FILE_TYPES,
+        )
+        return _first_path(result)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -90,7 +116,7 @@ def main(argv: list[str] | None = None) -> None:
             window = webview.create_window(
                 "FloorPro", url, width=1280, height=820, min_size=(1024, 700)
             )
-            app.state.save_file = _native_saver(webview, window)
+            app.state.dialogs = NativeDialogs(webview, window)
             webview.start()
     except KeyboardInterrupt:
         pass

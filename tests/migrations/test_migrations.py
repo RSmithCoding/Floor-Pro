@@ -239,3 +239,147 @@ def test_realistic_data_survives_upgrade(db_path):
     assert len(before["customer"]) == 5
     assert before["business_settings"][0][3] == Decimal("17.50")
     engine.dispose()
+
+
+# --- Before upgrade backups once a backup password is set (feature 002) ---------------------
+
+
+def _out_of_date_db(db_path):
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("CREATE TABLE legacy (value TEXT)")
+        conn.execute("INSERT INTO legacy VALUES ('keep me')")
+
+
+def protected(data_dir):
+    folder = data_dir / "backups"
+    return sorted(folder.glob("FloorPro-backup-*-before-upgrade*.fpbackup"))
+
+
+def test_no_password_still_writes_a_plain_copy(data_dir, db_path):
+    _out_of_date_db(db_path)
+    upgrade_to_head(db_path)
+    assert len(backups(data_dir)) == 1
+    assert protected(data_dir) == []
+
+
+def test_password_set_writes_a_protected_before_upgrade_backup(data_dir, db_path):
+    from floorpro import backup_file
+    from floorpro.services import backup_service
+
+    backup_service.set_password("correct horse battery")
+    _out_of_date_db(db_path)
+    upgrade_to_head(db_path)
+
+    assert backups(data_dir) == []
+    files = protected(data_dir)
+    assert len(files) == 1
+    assert backup_file.read_header(files[0])["kind"] == "before_upgrade"
+    restored = backup_file.decrypt(files[0], backup_service.load_key().key)
+    copy = data_dir / "check.db"
+    copy.write_bytes(restored)
+    with sqlite3.connect(copy) as conn:
+        assert conn.execute("SELECT value FROM legacy").fetchall() == [("keep me",)]
+    assert list((data_dir / "tmp").iterdir()) == []
+
+
+def test_protected_before_upgrade_backups_keep_ten(data_dir, db_path):
+    from datetime import timedelta
+
+    from floorpro import backup_file
+    from floorpro.domain.backups import BackupKind, filename_for
+    from floorpro.services import backup_service
+
+    backup_service.set_password("correct horse battery")
+    stored = backup_service.load_key()
+    folder = data_dir / "backups"
+    for i in range(11):
+        when = datetime(2026, 1, 1, tzinfo=UTC) + timedelta(days=i)
+        fields = {
+            "kind": "before_upgrade",
+            "created_at": when.isoformat().replace("+00:00", "Z"),
+            "app_version": "0.1.0",
+            "schema_revision": None,
+            "contents": {"customers": 0},
+        }
+        name = filename_for(BackupKind.BEFORE_UPGRADE, when.replace(tzinfo=None), set())
+        backup_file.write_backup(folder, name, b"x", fields, stored.key, stored.kdf)
+    _out_of_date_db(db_path)
+    upgrade_to_head(db_path)
+
+    files = protected(data_dir)
+    assert len(files) == 10
+    assert "2026-01-01" not in " ".join(f.name for f in files)
+    assert "2026-01-02" not in " ".join(f.name for f in files)
+
+
+def test_setting_the_password_protects_legacy_copies(data_dir, db_path):
+    from floorpro import backup_file
+    from floorpro.services import backup_service
+
+    upgrade_to_head(db_path)
+    folder = data_dir / "backups"
+    folder.mkdir(exist_ok=True)
+    legacy = folder / "floorpro-20261101T093000123456Z-pre-0001.db"
+    with sqlite3.connect(db_path) as source, sqlite3.connect(legacy) as dest:
+        source.backup(dest)
+
+    backup_service.set_password("correct horse battery")
+
+    assert not legacy.exists()
+    files = protected(data_dir)
+    assert len(files) == 1
+    header = backup_file.read_header(files[0])
+    assert header["kind"] == "before_upgrade"
+    assert header["created_at"] == "2026-11-01T09:30:00.123456Z"
+    assert header["schema_revision"] == head_revision()
+    assert header["contents"] == {"customers": 0}
+
+
+def test_restoring_an_older_backup_upgrades_it(data_dir, db_path):
+    """A backup at an older revision (today: base) is upgraded on the staged copy, then swapped."""
+    from alembic import command
+
+    from floorpro import backup_file
+    from floorpro.migrate import alembic_config, current_revision
+    from floorpro.services import backup_service
+
+    upgrade_to_head(db_path)
+    backup_service.set_password("correct horse battery")
+
+    old = data_dir / "old.db"
+    with sqlite3.connect(db_path) as source, sqlite3.connect(old) as dest:
+        source.backup(dest)
+    engine = make_engine(old)
+    with engine.begin() as conn:
+        cfg = alembic_config()
+        cfg.attributes["connection"] = conn
+        command.downgrade(cfg, "base")
+    engine.dispose()
+    assert current_revision(old) is None
+
+    stored = backup_service.load_key()
+    fields = {
+        "kind": "manual",
+        "created_at": "2026-11-01T09:00:00Z",
+        "app_version": "0.0.1",
+        "schema_revision": None,
+        "contents": {"customers": 0},
+    }
+    path = backup_file.write_backup(
+        data_dir / "backups",
+        "FloorPro-backup-2026-11-01-090000-manual.fpbackup",
+        old.read_bytes(),
+        fields,
+        stored.key,
+        stored.kdf,
+    )
+    live = make_engine(db_path)
+    backup_service.restore(path, live)
+    live.dispose()
+
+    assert current_revision(db_path) == head_revision()
+    engine = make_engine(db_path)
+    with engine.connect() as conn:
+        assert conn.execute(select(Customer)).all() == []
+    engine.dispose()
+    assert path.exists()  # the backup file itself is untouched

@@ -2,6 +2,12 @@
   "domestic": ("Domestic", "bg-ink-100 text-ink-700"),
   "trade": ("Trade", "bg-oak-100 text-oak-800"),
   "archived": ("Archived", "bg-warning-50 text-warning-800"),
+  "manual": ("Manual", "bg-brand-50 text-brand-700"),
+  "automatic": ("Automatic", "bg-ink-100 text-ink-700"),
+  "before_restore": ("Before restore", "bg-oak-100 text-oak-800"),
+  "before_upgrade": ("Before upgrade", "bg-ink-100 text-ink-700"),
+  "unprotected": ("Not protected", "bg-warning-50 text-warning-800"),
+  "damaged": ("Damaged or not a FloorPro backup", "bg-danger-50 text-danger-700"),
 } %}
 {% macro badge(kind, label=None) -%}
 {%- set text, cls = _badges.get(kind, (kind|title, "bg-ink-100 text-ink-700")) -%}

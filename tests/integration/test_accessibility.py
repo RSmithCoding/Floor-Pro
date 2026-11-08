@@ -12,7 +12,18 @@ import pytest
 
 from tests.conftest import make_customer
 
-LABELLED_INPUT_TYPES = {"text", "email", "tel", "search", "checkbox", "radio", "number", ""}
+LABELLED_INPUT_TYPES = {
+    "text",
+    "email",
+    "tel",
+    "search",
+    "checkbox",
+    "radio",
+    "number",
+    "password",
+    "file",
+    "",
+}
 
 
 class PageAudit(HTMLParser):
@@ -143,3 +154,81 @@ def test_focus_styles_defined():
 
     css = resource_path("static/css/input.css").read_text(encoding="utf-8")
     assert ":focus-visible" in css
+
+
+# --- Backups and recovery (feature 002) ------------------------------------------------------
+
+
+def test_backup_pages_are_accessible(client, data_dir):
+    from floorpro.services import backup_service
+
+    assert_accessible(client.get("/backups").text, "/backups (no password)")
+    backup_service.set_password("correct horse battery")
+    client.post("/backups")
+    client.post("/backups")
+    assert_accessible(client.get("/backups").text, "/backups (with backups)")
+    assert_accessible(client.get("/").text, "/ (backup card)")
+
+
+def test_recovery_page_is_accessible(data_dir):
+    from fastapi.testclient import TestClient
+
+    from floorpro.app import create_app
+
+    with TestClient(create_app(data_dir)):
+        pass
+    with open(data_dir / "floorpro.db", "r+b") as fh:
+        fh.write(b"\x00garbage!" * 12)
+    with TestClient(create_app(data_dir)) as client:
+        html = client.get("/recovery").text
+        assert_accessible(html, "/recovery")
+        assert '<html lang="en-GB"' in html
+
+
+def test_backup_dialogs_are_accessible(client, data_dir, htmx):
+    from floorpro.services import backup_service
+
+    backup_service.set_password("correct horse battery")
+    client.post("/backups")
+    client.post("/backups")
+    names = sorted(p.name for p in (data_dir / "backups").glob("*.fpbackup"))
+    for where, url in [
+        ("restore", f"/backups/local/{names[0]}/restore"),
+        ("delete", f"/backups/local/{names[0]}/delete"),
+        ("change password", "/backups/password/change"),
+    ]:
+        html = client.get(url, headers=htmx).text
+        assert "<dialog" in html, where
+        assert_accessible(html, where)
+
+
+def test_backup_errors_are_linked_to_fields(client, data_dir, htmx):
+    from floorpro.services import backup_service
+
+    html = client.post(
+        "/backups/password", data={"password": "short", "password_confirm": "x"}, headers=htmx
+    ).text
+    assert_accessible(html, "set password errors")
+    assert 'aria-describedby="password-hint password-error"' in html
+    assert 'aria-describedby="password_confirm-error"' in html
+
+    backup_service.set_password("correct horse battery")
+    client.post("/backups")
+    name = next((data_dir / "backups").glob("*.fpbackup")).name
+    html = client.post(f"/backups/local/{name}/restore", data={"confirm": "no"}, headers=htmx).text
+    assert_accessible(html, "restore confirm errors")
+    assert 'aria-describedby="confirm-error"' in html
+
+
+def test_progress_messages_are_announced(client, data_dir, htmx):
+    from floorpro.services import backup_service
+
+    backup_service.set_password("correct horse battery")
+    client.post("/backups")
+    page = client.get("/backups").text
+    assert 'aria-live="polite"><svg' in page and "Backing up…" in page
+    name = next((data_dir / "backups").glob("*.fpbackup")).name
+    dialog = client.get(f"/backups/local/{name}/restore", headers=htmx).text
+    progress = dialog.split('id="restore-progress"', 1)[1].split("</p>", 1)[0]
+    assert 'aria-live="polite"' in progress
+    assert "Restoring… this can take up to 30 seconds" in progress

@@ -25,7 +25,7 @@
     {%- else %}
     {{ button("Archive", variant="secondary", hx_get="/customers/" ~ c.id ~ "/archive", hx_target="#modal", hx_swap="innerHTML") }}
     {%- endif %}
-    {%- if request.app.state.save_file %}
+    {%- if request.app.state.dialogs %}
     {#- Desktop window: native Save dialog; the web view itself can't download files. #}
     {{ button("Export data", variant="secondary", hx_post="/customers/" ~ c.id ~ "/export/save", hx_target="#modal", hx_swap="innerHTML") }}
     {%- else %}

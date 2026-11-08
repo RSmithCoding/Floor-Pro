@@ -341,13 +341,15 @@ def save_customer_export(
     request: Request, customer_id: int, session: Session = Depends(get_session)
 ):
     """Desktop only: save the export through the native Save dialog, staying on the page."""
-    save_file = request.app.state.save_file
-    if save_file is None:
+    dialogs = request.app.state.dialogs
+    if dialogs is None:
         raise HTTPException(status_code=404)
     customer = _get_or_404(session, customer_id)
     filename, data = _export_file(customer)
     try:
-        path = save_file(filename, data)
+        path = dialogs.save_path(filename)
+        if path is not None:
+            path.write_bytes(data)
     except OSError:
         log.exception("Export for %s could not be saved", customer.reference)
         toast = ("error", "The file couldn't be saved. Try a different folder.")

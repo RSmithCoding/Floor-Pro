@@ -1,0 +1,55 @@
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button %}
+{% from "components/badge.html" import badge %}
+{% from "components/table.html" import plain_header %}
+{% from "components/empty_state.html" import empty_state %}
+<div id="backup-list">
+{% call card("Your backups", padded=False) %}
+  {%- if backups %}
+  <div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-ink-100 text-sm">
+    <thead class="bg-ink-50">
+      <tr>
+        {{ plain_header("Date") }}{{ plain_header("Type") }}{{ plain_header("Size") }}
+        {{ plain_header("Customers", cls="text-right") }}{{ plain_header("Location") }}
+        <th scope="col" class="px-4 py-3"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-ink-100">
+      {%- for b in backups %}
+      <tr>
+        <td class="whitespace-nowrap px-4 py-3 text-ink-900">{{ b.created_at|local_datetime }}</td>
+        <td class="px-4 py-3">
+          {%- if b.damaged %}{{ badge("damaged") }}{% else %}{{ badge(b.kind.value) }}{% if not b.protected %} {{ badge("unprotected") }}{% endif %}{% endif %}
+        </td>
+        <td class="whitespace-nowrap px-4 py-3 text-ink-700">{{ b.size_bytes|filesize }}</td>
+        <td class="px-4 py-3 text-right text-ink-700">{% if b.damaged %}—{% else %}{{ b.customers|thousands }}{% endif %}</td>
+        <td class="px-4 py-3 text-ink-700">{% if b.location == "local" %}This computer{% else %}{{ folder.path.name if folder else "Backup folder" }}{% endif %}</td>
+        <td class="whitespace-nowrap px-4 py-3 text-right">
+          <div class="flex justify-end gap-1">
+          {%- set base = "/backups/" ~ b.location ~ "/" ~ b.filename %}
+          {%- if b.restorable %}
+          {{ button("Restore", variant="secondary", size="sm", hx_get=base ~ "/restore", hx_target="#modal", hx_swap="innerHTML", aria_label="Restore the backup from " ~ (b.created_at|local_datetime)) }}
+          {%- endif %}
+          {%- if not b.damaged %}
+          {%- if desktop %}
+          {{ button("Save a copy to…", variant="ghost", size="sm", hx_post=base ~ "/save-copy", hx_target="#modal", hx_swap="innerHTML") }}
+          {%- else %}
+          <a href="{{ base }}/download" hx-boost="false" class="inline-flex items-center justify-center rounded-control px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-ink-100">Save a copy to…</a>
+          {%- endif %}
+          {%- endif %}
+          {%- if not latest or b.filename != latest.filename or b.location != latest.location %}
+          {{ button("Delete", variant="danger_ghost", size="sm", hx_get=base ~ "/delete", hx_target="#modal", hx_swap="innerHTML", aria_label="Delete the backup from " ~ (b.created_at|local_datetime)) }}
+          {%- endif %}
+          </div>
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- else %}
+  {{ empty_state("No backups yet", "Press Back up now to make your first protected backup.") }}
+  {%- endif %}
+{% endcall %}
+</div>

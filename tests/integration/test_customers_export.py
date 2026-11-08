@@ -96,38 +96,22 @@ def test_export_unknown_customer_is_404(client):
 # --- Desktop: native save dialog instead of navigating to the file -------------------------
 
 
-class FakeSaver:
-    """Stands in for the native Save dialog that the desktop launcher provides."""
-
-    def __init__(self, folder, cancel=False):
-        self.folder, self.cancel, self.calls = folder, cancel, []
-
-    def __call__(self, filename: str, data: bytes):
-        self.calls.append(filename)
-        if self.cancel:
-            return None
-        path = self.folder / filename
-        path.write_bytes(data)
-        return path
-
-
-def test_desktop_export_saves_via_dialog(client, app, session, htmx, tmp_path):
-    saver = FakeSaver(tmp_path)
-    app.state.save_file = saver
+def test_desktop_export_saves_via_dialog(client, fake_dialogs, session, htmx, tmp_path):
+    today = date.today().isoformat()
+    filename = f"FloorPro-customer-C-00001-{today}.json"
+    fake_dialogs.save_result = tmp_path / filename
     customer = full_customer(session)
     response = client.post(f"/customers/{customer.id}/export/save", headers=htmx)
     assert response.status_code == 200
-    today = date.today().isoformat()
-    filename = f"FloorPro-customer-C-00001-{today}.json"
-    assert saver.calls == [filename]
+    assert fake_dialogs.saved_names == [filename]
     assert f"Exported to {filename}" in response.text
     assert "HX-Push-Url" not in response.headers  # the page stays where it is
     saved = json.loads((tmp_path / filename).read_text(encoding="utf-8"))
     assert saved["customer"]["reference"] == "C-00001"
 
 
-def test_desktop_export_cancelled(client, app, session, htmx, tmp_path):
-    app.state.save_file = FakeSaver(tmp_path, cancel=True)
+def test_desktop_export_cancelled(client, fake_dialogs, session, htmx, tmp_path):
+    fake_dialogs.save_result = None
     customer = full_customer(session)
     response = client.post(f"/customers/{customer.id}/export/save", headers=htmx)
     assert response.status_code == 200
@@ -141,13 +125,15 @@ def test_desktop_export_needs_the_desktop_window(client, session, htmx):
     assert response.status_code == 404
 
 
-def test_export_control_matches_mode(client, app, session, tmp_path):
+def test_export_control_matches_mode(client, app, session):
+    from tests.conftest import FakeDialogs
+
     customer = full_customer(session)
     browser_page = client.get(f"/customers/{customer.id}").text
     assert f'href="/customers/{customer.id}/export"' in browser_page
     assert "/export/save" not in browser_page
 
-    app.state.save_file = FakeSaver(tmp_path)
+    app.state.dialogs = FakeDialogs()
     desktop_page = client.get(f"/customers/{customer.id}").text
     assert f'hx-post="/customers/{customer.id}/export/save"' in desktop_page
     assert f'href="/customers/{customer.id}/export"' not in desktop_page

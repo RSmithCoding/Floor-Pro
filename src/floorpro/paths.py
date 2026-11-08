@@ -54,6 +54,30 @@ def logs_dir() -> Path:
     return path
 
 
+def tmp_dir() -> Path:
+    """Scratch space for snapshots, staged restores and uploads (emptied at startup)."""
+    path = data_dir() / "tmp"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def damaged_dir() -> Path:
+    """Unreadable databases moved aside by recovery mode. Never deleted by FloorPro."""
+    path = data_dir() / "damaged"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def backup_key_path() -> Path:
+    """The derived backup key (never the password). Stays on this computer."""
+    return data_dir() / "backup-key.json"
+
+
+def backup_prefs_path() -> Path:
+    """Backup preferences, kept outside the database so a restore never rewinds them."""
+    return data_dir() / "backup-settings.json"
+
+
 def secret_key() -> bytes:
     """Per-install signing key, created on first use."""
     path = data_dir() / "secret.key"

@@ -20,6 +20,26 @@
   </div>
 </form>
 
+<section id="backup-card" class="mt-6 rounded-card p-5 shadow-card ring-1 {{ 'bg-warning-50 ring-warning-500/40' if backup_warnings else 'bg-white ring-ink-200/70' }}" aria-labelledby="backup-card-title">
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h2 id="backup-card-title" class="text-base font-semibold {{ 'text-warning-800' if backup_warnings else 'text-ink-900' }}">Backups</h2>
+      {%- if backup_warnings %}
+      <ul class="mt-1 space-y-1 text-sm text-warning-800" role="list">
+        {%- for warning in backup_warnings %}<li>{{ warning.message }}</li>{% endfor %}
+      </ul>
+      {%- else %}
+      <p class="mt-1 text-sm text-ink-600">Last backup: {{ last_backup }}</p>
+      {%- endif %}
+    </div>
+    {%- if backup_warnings %}
+    {{ button("Go to Backups", variant="secondary", size="sm", href="/backups") }}
+    {%- else %}
+    <a href="/backups" class="text-sm font-medium text-brand-700 hover:text-brand-800">Backups</a>
+    {%- endif %}
+  </div>
+</section>
+
 <div class="mt-8 grid gap-6 lg:grid-cols-2">
   {% call card("Upcoming appointments", "Estimates and fittings booked in the planner") %}
     {{ empty_state("Coming soon", "Your upcoming estimates and fittings will appear here once the planner is available.") }}

@@ -1,0 +1,51 @@
+{% from "components/modal.html" import modal, modal_actions %}
+{% from "components/button.html" import button %}
+{% from "components/field.html" import field %}
+{%- set errors = errors or {} %}
+{% call modal("Restore this backup?", id="restore-dialog") %}
+  <dl class="grid grid-cols-3 gap-x-4 gap-y-1.5">
+    <dt class="text-ink-500">Date</dt><dd class="col-span-2 font-medium text-ink-900">{{ backup.created_at|local_datetime }}</dd>
+    {%- if backup.kind %}
+    <dt class="text-ink-500">Type</dt><dd class="col-span-2 text-ink-900">{{ backup.kind.label }}</dd>
+    {%- endif %}
+    {%- if not backup.damaged %}
+    <dt class="text-ink-500">Contents</dt><dd class="col-span-2 text-ink-900">{{ backup.customers|thousands }} customer{{ "" if backup.customers == 1 else "s" }}</dd>
+    {%- endif %}
+    {%- if backup.app_version %}
+    <dt class="text-ink-500">Made by</dt><dd class="col-span-2 text-ink-900">FloorPro {{ backup.app_version }}</dd>
+    {%- endif %}
+  </dl>
+
+  {%- if refusal %}
+  <p class="mt-4 rounded-card bg-danger-50 p-4 text-danger-700 ring-1 ring-danger-600/30" role="alert">{{ refusal }}</p>
+  {% call modal_actions() %}
+    {{ button("Close", variant="secondary", data_close_dialog=True) }}
+  {% endcall %}
+  {%- else %}
+  <div class="mt-4 rounded-card bg-warning-50 p-4 text-warning-800 ring-1 ring-warning-500/40" role="note">
+    <p class="font-semibold">Everything changed since then will be replaced. FloorPro will first save a Before restore backup of your current data.</p>
+    <p class="mt-1">Customers erased since this backup was made will come back and need erasing again.</p>
+  </div>
+  {%- if restore_error %}
+  <p class="mt-4 rounded-card bg-danger-50 p-4 text-danger-700 ring-1 ring-danger-600/30" role="alert">{{ restore_error }}</p>
+  {%- endif %}
+  <form method="post" action="{{ action }}" class="mt-4 space-y-4" hx-indicator="#restore-progress" hx-disabled-elt="find button[type=submit]">
+    {%- if source_token %}<input type="hidden" name="source_token" value="{{ source_token }}">{% endif %}
+    {%- if needs_password %}
+    {{ field("password", "Backup password", type="password", error=errors.get("password"),
+             hint="This backup was made with a different password. Enter the password it was made with.",
+             autocomplete="off") }}
+    {%- endif %}
+    {{ field("confirm", "Type RESTORE to confirm", error=errors.get("confirm"), autocomplete="off",
+             autofocus=not needs_password) }}
+    <p id="restore-progress" class="htmx-indicator flex items-center gap-2 text-ink-600" aria-live="polite">
+      <svg class="size-4 animate-spin" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M17 10a7 7 0 0 0-7-7" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      <span>Restoring… this can take up to 30 seconds</span>
+    </p>
+    {% call modal_actions() %}
+      {{ button("Cancel", variant="secondary", data_close_dialog=True) }}
+      {{ button("Restore", variant="danger", type="submit") }}
+    {% endcall %}
+  </form>
+  {%- endif %}
+{% endcall %}

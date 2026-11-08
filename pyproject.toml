@@ -15,6 +15,9 @@ dependencies = [
     "python-multipart>=0.0.9",
     "platformdirs>=4.2",
     "pywebview>=5.0",
+    # AES-256-GCM for encrypted backups only (feature 002, research §3). Capped below 49:
+    # 49+ ships no Intel macOS wheels, and FloorPro must run on Intel Macs (macOS 12).
+    "cryptography>=48.0.1,<49",
 ]
 
 [project.scripts]
