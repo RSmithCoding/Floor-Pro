@@ -406,7 +406,7 @@ via **Restore from a file…**.
   - **"Where the data lives"**: add `backup-key.json`, `backup-settings.json`, `backups/` (`.fpbackup`), `tmp/` and `damaged/`
   - **Warning**: forgetting the backup password means those backups can't be restored
 - [X] T054 Check the PyInstaller compatibility of `cryptography`: add a short note under research §3 confirming PyInstaller's built-in hook, and that `backup_file` imports only `cryptography.hazmat.primitives.ciphers.aead.AESGCM`. No packaging config yet (packaging is a later feature). Also add a unit test that monkeypatches `importlib.metadata.version` to raise `PackageNotFoundError` and confirms `floorpro.__version__` falls back to `"0.0.0+unknown"`
-- [ ] T055 Run the full quality gate:
+- [X] T055 Run the full quality gate:
   - `uv run ruff check .`, `uv run ruff format --check .` and `uv run pytest` (including slow tests) locally, and push
   - confirm the GitHub Actions run passes on macOS and Windows, including `test_backup_fixture.py`
 - [ ] T056 Walk through `specs/002-backup-restore/quickstart.md` sections A–H in the pywebview window on macOS, fix anything found (with regression tests), and confirm the native folder, Save and Open dialogs work from the desktop window. Time a first-time restore from the Backups screen to the dashboard (target under 2 minutes, SC-005)
