@@ -1,0 +1,11 @@
+{% from "components/modal.html" import modal, modal_actions %}
+{% from "components/button.html" import button %}
+{% call modal("Archive " ~ customer.display_name ~ "?", id="archive-dialog") %}
+  <p>They'll be hidden from the customer list but kept, and you can restore them at any time.</p>
+  <form method="post" action="/customers/{{ customer.id }}/archive">
+    {% call modal_actions() %}
+      {{ button("Cancel", variant="secondary", data_close_dialog=True) }}
+      {{ button("Archive customer", type="submit") }}
+    {% endcall %}
+  </form>
+{% endcall %}

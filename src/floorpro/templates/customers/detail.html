@@ -2,6 +2,7 @@
 {% from "components/card.html" import card %}
 {% from "components/badge.html" import badge %}
 {% from "components/empty_state.html" import empty_state %}
+{% from "components/button.html" import button %}
 {% set c = customer %}
 {% block title %}{{ c.display_name }} · FloorPro{% endblock %}
 {% block content %}
@@ -17,7 +18,21 @@
     </div>
     <p class="mt-1 font-mono text-sm text-ink-600">{{ c.reference }}</p>
   </div>
-  {% block actions %}{% endblock %}
+  <div class="flex flex-wrap items-center gap-2">
+    {{ button("Edit", variant="secondary", href="/customers/" ~ c.id ~ "/edit") }}
+    {%- if c.is_archived %}
+    <form method="post" action="/customers/{{ c.id }}/restore">{{ button("Restore", variant="secondary", type="submit") }}</form>
+    {%- else %}
+    {{ button("Archive", variant="secondary", hx_get="/customers/" ~ c.id ~ "/archive", hx_target="#modal", hx_swap="innerHTML") }}
+    {%- endif %}
+    {%- if request.app.state.save_file %}
+    {#- Desktop window: native Save dialog; the web view itself can't download files. #}
+    {{ button("Export data", variant="secondary", hx_post="/customers/" ~ c.id ~ "/export/save", hx_target="#modal", hx_swap="innerHTML") }}
+    {%- else %}
+    <a href="/customers/{{ c.id }}/export" hx-boost="false" class="inline-flex items-center justify-center gap-2 rounded-control bg-white px-4 py-2 text-sm font-medium text-ink-700 ring-1 ring-inset ring-ink-300 hover:bg-ink-50">Export data</a>
+    {%- endif %}
+    {{ button("Erase", variant="danger_ghost", hx_get="/customers/" ~ c.id ~ "/erase", hx_target="#modal", hx_swap="innerHTML") }}
+  </div>
 </div>
 
 <div class="mt-6 grid gap-6 lg:grid-cols-3">
@@ -64,4 +79,5 @@
     {% endcall %}
   </div>
 </div>
+{%- if dialog %}{% include dialog %}{% endif %}
 {% endblock %}

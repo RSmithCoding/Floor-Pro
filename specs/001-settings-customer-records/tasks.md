@@ -508,24 +508,24 @@ erase a customer with a typed-name confirmation.
 
 ### Tests for User Story 3 ⚠️ Write first, confirm they fail
 
-- [ ] T057 [P] [US3] Write `tests/integration/test_customers_edit.py` (spec scenario 3.1):
+- [X] T057 [P] [US3] Write `tests/integration/test_customers_edit.py` (spec scenario 3.1):
   - `GET /customers/{id}/edit` is pre-filled
   - `POST /customers/{id}` with a new phone number saves it, updates `updated_at` and shows the "Customer updated" toast
   - a validation error returns 422
   - the duplicate check runs only when a phone or email changed (editing notes on a customer who shares a phone with another doesn't warn)
   - an unknown id returns 404
-- [ ] T058 [P] [US3] Write `tests/integration/test_customers_archive.py` (spec scenario 3.2):
+- [X] T058 [P] [US3] Write `tests/integration/test_customers_archive.py` (spec scenario 3.2):
   - `GET /customers/{id}/archive` returns the dialog
   - `POST` archives: `is_archived`, `archived_at` set, the archived badge on the record, and the customer drops out of the default list and appears with `archived=1`
   - `POST /customers/{id}/restore` clears both
   - an archived customer still triggers the duplicate warning
-- [ ] T059 [P] [US3] Write `tests/integration/test_customers_export.py`, per contracts/customer-export.md (scenario 3.3):
+- [X] T059 [P] [US3] Write `tests/integration/test_customers_export.py`, per contracts/customer-export.md (scenario 3.3):
   - `GET /customers/{id}/export` returns `application/json` with `Content-Disposition: attachment; filename="FloorPro-customer-C-00001-YYYY-MM-DD.json"`
   - the body parses as JSON with `export.format_version == 1`
   - `customer.reference` is present, and every `customer` table column except `id`, `mobile_phone_digits`, `other_phone_digits` and `postcode_compact` is present, with the address nested under `address`
   - timestamps end in `Z`
   - `related_records` has empty `jobs`, `orders`, `appointments` and `invoices`
-- [ ] T060 [P] [US3] Write `tests/integration/test_customers_erase.py` (scenario 3.4):
+- [X] T060 [P] [US3] Write `tests/integration/test_customers_erase.py` (scenario 3.4):
   - `GET /customers/{id}/erase` returns the dialog containing "Type Jane Smith to confirm"
   - a wrong name returns 422 with "The name doesn't match.", the headers `HX-Retarget: #modal` and `HX-Reswap: innerHTML`, and keeps the row
   - `"  jane smith "` deletes the row, shows `/customers` with an `HX-Push-Url: /customers` header, and shows the "Customer erased" toast
@@ -534,23 +534,23 @@ erase a customer with a typed-name confirmation.
 
 ### Implementation for User Story 3
 
-- [ ] T061 [US3] Extend `src/floorpro/services/customer_service.py`:
+- [X] T061 [US3] Extend `src/floorpro/services/customer_service.py`:
   - **`update(session, customer, form) -> list[str]`**: recomputes the derived columns and `updated_at`
   - **`phones_or_email_changed(customer, form) -> bool`**
   - **`archive(session, customer)`** and **`restore(session, customer)`**
   - **`export_dict(customer) -> dict`**: exactly the contracts/customer-export.md shape
   - **`has_linked_records(session, customer) -> bool`**: returns `False`, with a docstring explaining that it's extended when jobs/orders/invoices exist (research.md §12)
   - **`erase(session, customer, confirm_name) -> bool`**: compares the name with trim and `casefold` against the company name, "First Last" and `display_name` (any of them confirms). Hard-deletes when there are no linked records, otherwise raises `NotImplementedError("anonymise — implemented with first linked-records feature")`
-- [ ] T062 [US3] Add the US3 routes to `src/floorpro/routes/customers.py`, per contracts/routes.md. Every successful write responds per "Success after a write": HTMX renders the destination page with `push_url` and the toast, and a plain request uses `flash_redirect`:
+- [X] T062 [US3] Add the US3 routes to `src/floorpro/routes/customers.py`, per contracts/routes.md. Every successful write responds per "Success after a write": HTMX renders the destination page with `push_url` and the toast, and a plain request uses `flash_redirect`:
   - **Edit**: `GET /customers/{id}/edit` and `POST /customers/{id}` (the duplicate check only when `phones_or_email_changed`)
   - **Archive and restore**: `GET`/`POST /customers/{id}/archive` and `POST /customers/{id}/restore`
   - **Export**: `GET /customers/{id}/export`, a `JSONResponse` with `indent=2`, `ensure_ascii=False` and the `Content-Disposition` header
   - **Erase**: `GET`/`POST /customers/{id}/erase`. A wrong name returns 422 with the headers `HX-Retarget: #modal` and `HX-Reswap: innerHTML`
-- [ ] T063 [P] [US3] Create the archive and erase dialogs, both using the `modal` macro:
+- [X] T063 [P] [US3] Create the archive and erase dialogs, both using the `modal` macro:
   - **`src/floorpro/templates/customers/_confirm_archive.html`**: "Archive {name}? They'll be hidden from the customer list but kept, and you can restore them at any time."
   - **`src/floorpro/templates/customers/_confirm_erase.html`**: an explanation that this permanently deletes their details, a `confirm_name` input labelled "Type {display_name} to confirm", and a danger button
   - the forms inside both dialogs are plain `<form method="post">` elements, boosted by `hx-boost`, so a successful response replaces the whole page (closing the dialog). On a 422 (wrong name), the erase route sets `HX-Retarget: #modal` and `HX-Reswap: innerHTML` so the dialog is re-rendered with the error
-- [ ] T064 [US3] Update the customer record and form templates:
+- [X] T064 [US3] Update the customer record and form templates:
   - **`src/floorpro/templates/customers/detail.html`**: add the action bar (Edit, Archive/Restore depending on state, Export data, Erase in danger style) and the "Archived" badge with the archived date
     - the Archive and Erase buttons use `hx-get="/customers/{id}/archive"` or `"/customers/{id}/erase"` with `hx-target="#modal"` and `hx-swap="innerHTML"`
     - Restore is a plain boosted `<form method="post" action="/customers/{id}/restore">` with a single button

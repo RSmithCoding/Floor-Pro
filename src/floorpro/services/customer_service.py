@@ -1,13 +1,17 @@
-"""Customer business logic: create, find duplicates, search (US1)."""
+"""Customer business logic.
+
+US1: create, search, duplicates. US3: update, archive, export, erase.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC
 
 from sqlalchemy import Select, func, literal, or_, select
 from sqlalchemy.orm import Session
 
-from floorpro.domain.customers import parse_reference
+from floorpro.domain.customers import parse_reference, person_name
 from floorpro.domain.validation import (
     looks_like_phone,
     normalise_postcode,
@@ -155,3 +159,110 @@ def search(
         order = [primary.desc(), secondary.desc()] if desc else [primary, secondary]
     customers = list(session.scalars(stmt.order_by(*order).limit(limit)))
     return SearchResult(customers, total)
+
+
+# --- US3: update, archive, export, erase ---------------------------------------------------
+
+
+def update(session: Session, customer: Customer, form: CustomerForm) -> list[str]:
+    warnings = _apply_form(customer, form)
+    session.flush()
+    return warnings
+
+
+def phones_or_email_changed(customer: Customer, form: CustomerForm) -> bool:
+    old_phones = {d for d in (customer.mobile_phone_digits, customer.other_phone_digits) if d}
+    new_phones = {phone_digits(p) for p in form.phones}
+    old_email = (customer.email or "").lower()
+    new_email = (form.email or "").lower()
+    return bool(new_phones - old_phones) or (new_email != old_email and bool(new_email))
+
+
+def archive(session: Session, customer: Customer) -> None:
+    customer.is_archived = True
+    customer.archived_at = utcnow()
+    customer.updated_at = customer.archived_at
+    session.flush()
+
+
+def restore(session: Session, customer: Customer) -> None:
+    customer.is_archived = False
+    customer.archived_at = None
+    customer.updated_at = utcnow()
+    session.flush()
+
+
+def _iso(value) -> str | None:
+    if value is None:
+        return None
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def export_dict(customer: Customer) -> dict:
+    """Everything FloorPro holds about one customer (contracts/customer-export.md, v1)."""
+    return {
+        "export": {
+            "format_version": 1,
+            "produced_by": "FloorPro",
+            "exported_at": _iso(utcnow()),
+            "description": "All personal data FloorPro holds about this customer.",
+        },
+        "customer": {
+            "reference": customer.reference,
+            "customer_type": customer.customer_type,
+            "show_vat_breakdown": customer.show_vat_breakdown,
+            "title": customer.title,
+            "first_name": customer.first_name,
+            "last_name": customer.last_name,
+            "company_name": customer.company_name,
+            "mobile_phone": customer.mobile_phone,
+            "other_phone": customer.other_phone,
+            "email": customer.email,
+            "address": {
+                "line_1": customer.address_line1,
+                "line_2": customer.address_line2,
+                "town": customer.town,
+                "county": customer.county,
+                "postcode": customer.postcode,
+            },
+            "notes": customer.notes,
+            "marketing_consent": customer.marketing_consent,
+            "archived": customer.is_archived,
+            "archived_at": _iso(customer.archived_at),
+            "created_at": _iso(customer.created_at),
+            "updated_at": _iso(customer.updated_at),
+        },
+        "related_records": {"jobs": [], "orders": [], "appointments": [], "invoices": []},
+    }
+
+
+def has_linked_records(session: Session, customer: Customer) -> bool:
+    """Whether jobs, orders, appointments or invoices refer to this customer.
+
+    Always False for now: no such records exist yet. The first feature that adds them must
+    extend this check and implement the anonymise path in ``erase`` (research.md §12).
+    """
+    return False
+
+
+def _name_matches(customer: Customer, typed: str) -> bool:
+    wanted = " ".join(typed.split()).casefold()
+    if not wanted:
+        return False
+    candidates = {
+        customer.display_name,
+        customer.company_name or "",
+        person_name(customer.first_name, customer.last_name),
+    }
+    return wanted in {" ".join(c.split()).casefold() for c in candidates if c}
+
+
+def erase(session: Session, customer: Customer, confirm_name: str) -> bool:
+    """Permanently erase a customer once their name (person or company) is typed to confirm."""
+    if not _name_matches(customer, confirm_name):
+        return False
+    if has_linked_records(session, customer):
+        raise NotImplementedError("anonymise — implemented with first linked-records feature")
+    session.delete(customer)
+    session.flush()
+    return True

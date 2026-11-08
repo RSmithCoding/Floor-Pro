@@ -156,8 +156,12 @@ decision, the reason for it, and the alternatives considered.
   4. Wait until `GET /healthz` answers, then open a `webview.create_window("FloorPro", url,
      min_size=(1024, 700))`.
   5. Closing the window stops the server.
-  - `ALLOW_DOWNLOADS` is enabled so the customer export (FR-020) saves through the native
-    save dialog.
+  - **Saving files**: the launcher gives the app a `save_file(filename, data)` hook that
+    shows the native Save dialog (`window.create_file_dialog(FileDialog.SAVE, …)`). The
+    customer export (FR-020) uses it in the desktop window. *Amended after testing*: the
+    original plan relied on pywebview's `ALLOW_DOWNLOADS`, but on macOS the web view opens
+    any file it can display (including JSON) instead of downloading it, and with no Back
+    button the user is stranded. FloorPro therefore never navigates to a file in the window.
   - A `--browser` flag runs the same server in a normal browser for development.
 - **Rationale**: This meets the constitution's binding and data-location rules. Native
   engines are used: WebKit on macOS and WebView2 on Windows (built into Windows 10/11).
@@ -192,7 +196,9 @@ decision, the reason for it, and the alternatives considered.
 
 ## 11. Customer data export (FR-020)
 
-- **Decision**: `GET /customers/{id}/export` returns a pretty-printed **JSON** file
+- **Decision**: In the desktop window, `POST /customers/{id}/export/save` writes the file
+  through the native Save dialog and shows a toast, staying on the page (see §9). In a normal
+  browser (`--browser`), `GET /customers/{id}/export` returns a pretty-printed **JSON** file
   (`FloorPro-customer-C-00042-2026-11-07.json`) as an attachment. Its format is defined in
   [contracts/customer-export.md](contracts/customer-export.md). It includes every stored
   field, labelled in plain English, plus export metadata. Later features add their linked

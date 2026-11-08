@@ -106,8 +106,11 @@ Run these in the desktop window. Each maps to the spec's acceptance scenarios.
    "Last updated" time.
 2. **Archive**: archive Jane and confirm. Expect her to be gone from the default list and
    visible with **Show archived**. Restore her.
-3. **Export**: click Export. A native save dialog appears. Save the file and open it. Expect
-   JSON matching [customer-export.md](contracts/customer-export.md).
+3. **Export**: click **Export data**. The Mac's Save dialog opens, suggesting
+   `FloorPro-customer-C-00001-<date>.json` in Documents. Save it. Expect an "Exported to …"
+   message, and the customer page stays open. Open the file and expect JSON matching
+   [customer-export.md](contracts/customer-export.md). Pressing Cancel shows "Export
+   cancelled".
 4. **Erase**: choose Erase, type the wrong name (expect an error), then type `Jane Smith`.
    Expect the customer to be gone. A new customer then gets the next reference, never a
    reused one.

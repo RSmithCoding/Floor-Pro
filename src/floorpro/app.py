@@ -44,6 +44,9 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         engine.dispose()
 
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+    # Set by the desktop launcher: save_file(filename, data) -> Path | None (None = cancelled).
+    # It shows the native Save dialog, because the embedded web view can't download files.
+    app.state.save_file = None
     app.mount("/static", StaticFiles(directory=paths.resource_path("static")), name="static")
 
     @app.middleware("http")

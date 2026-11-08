@@ -18,7 +18,7 @@ only.
 - **Dialogs**: links and forms that *open* a `<dialog>` use explicit `hx-get`/`hx-post` with
   `hx-target="#modal"`, overriding `hx-boost`. Forms *inside* a dialog are plain boosted
   forms, so success replaces the whole page and closes the dialog. Errors are sent back into
-  the dialog with `HX-Retarget: #modal`. The export link uses `hx-boost="false"`.
+  the dialog with `HX-Retarget: #modal`. The export control is a button posting to `/customers/{id}/export/save` in the desktop window, or a plain link with `hx-boost="false"` in a browser.
 - **Not found**: `404` with the friendly "not found" page/partial. Raw errors are never
   shown.
 
@@ -65,6 +65,7 @@ rather than going into `#modal`.
 | POST | `/customers/{id}/archive` | Archive | none | Show `/customers/{id}` (see Success after a write) + toast. Archived badge shown |
 | POST | `/customers/{id}/restore` | Restore | none | Show `/customers/{id}` (see Success after a write) + toast |
 | GET | `/customers/{id}/export` | Export all data (FR-020) | none | `200 application/json`, `Content-Disposition: attachment; filename="FloorPro-customer-C-00042-YYYY-MM-DD.json"`. Format: [customer-export.md](customer-export.md) |
+| POST | `/customers/{id}/export/save` | Desktop window only: save the export via the native Save dialog | none | `404` when not running in the desktop window. Otherwise `200` with an empty fragment for `#modal` and a toast: "Exported to {filename}", "Export cancelled", or an error if the file couldn't be written. The page doesn't change |
 | GET | `/customers/{id}/erase` | Erase confirmation | none | `<dialog>` explaining what's deleted, with a text box "Type {display_name} to confirm" |
 | POST | `/customers/{id}/erase` | Erase | `confirm_name` | **Matches** the display name, the company name or "First Last" (case-insensitive, trimmed) → delete, show `/customers` (see Success after a write) + toast "Customer erased". **Mismatch** → `422` dialog with the error "The name doesn't match.", sent with `HX-Retarget: #modal` and `HX-Reswap: innerHTML` |
 
