@@ -1,0 +1,9 @@
+{% from "components/checkbox.html" import checkbox %}
+{%- set v = values %}
+{%- set trade = v.customer_type == "trade" %}
+<div id="vat-fields">
+  <input type="hidden" name="vat_fields_present" value="1">
+  {{ checkbox("show_vat_breakdown", "Show VAT breakdown on quotes and invoices",
+              checked=trade or v.show_vat_breakdown, disabled=trade,
+              hint="Always shown for trade customers" if trade else "Turn on for customers who need VAT shown separately, e.g. insurance jobs.") }}
+</div>

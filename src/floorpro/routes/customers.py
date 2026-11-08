@@ -11,6 +11,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from floorpro.db import get_session
+from floorpro.domain.customers import resolve_vat_breakdown
 from floorpro.domain.validation import looks_like_phone
 from floorpro.models import Customer
 from floorpro.schemas.customer_form import from_form
@@ -165,8 +166,43 @@ def list_customers(
 
 
 @router.get("/new")
-def new_customer(request: Request, prefill: str = ""):
-    return _form_page(request, _prefill_values(prefill))
+def new_customer(request: Request, prefill: str = "", customer_type: str = "domestic"):
+    values = _prefill_values(prefill)
+    if customer_type == "trade":
+        values["customer_type"] = "trade"
+        values["show_vat_breakdown"] = True
+    return _form_page(request, values)
+
+
+@router.get("/form/vat-fields")
+def type_fields(
+    request: Request,
+    customer_type: str = "domestic",
+    show_vat_breakdown: str = "",
+    original_type: str = "",
+    title: str = "",
+    first_name: str = "",
+    last_name: str = "",
+    company_name: str = "",
+):
+    """Re-render the VAT-breakdown group (and, out of band, the name fields) when the type
+    changes, so trade customers see the box locked on and the company name first."""
+    new_type = "trade" if customer_type == "trade" else "domestic"
+    requested = True if show_vat_breakdown == "on" else None
+    values = {
+        "customer_type": new_type,
+        "show_vat_breakdown": resolve_vat_breakdown(original_type or None, new_type, requested),
+        "title": title,
+        "first_name": first_name,
+        "last_name": last_name,
+        "company_name": company_name,
+    }
+    return render(
+        request,
+        "customers/form.html",
+        "customers/_type_change.html",
+        {"values": values, "errors": {}, "customer": None, "duplicates": []},
+    )
 
 
 @router.post("")

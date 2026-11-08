@@ -17,17 +17,14 @@
     {{ radio_group("customer_type", "Type", [
         ("domestic", "Domestic", "A member of the public."),
         ("trade", "Trade", "Fitters, builders, landlords and other businesses."),
-      ], selected=v.customer_type) }}
+      ], selected=v.customer_type,
+      hx_get="/customers/form/vat-fields", hx_trigger="change", hx_target="#vat-fields",
+      hx_swap="outerHTML", hx_include="closest form") }}
+    <input type="hidden" name="original_type" value="{{ customer.customer_type if customer else '' }}">
   {% endcall %}
 
   {% call card("Name", "Enter a person's name, a company name, or both.") %}
-    {%- if e.name %}<p id="name-error" class="mb-4 text-sm text-danger-700" role="alert">{{ e.name }}</p>{% endif %}
-    <div class="grid gap-4 sm:grid-cols-6">
-      {{ field("title", "Title", v.title, error=e.title, optional=True, wrapper_class="sm:col-span-1", maxlength=20, autocomplete="honorific-prefix") }}
-      {{ field("first_name", "First name", v.first_name, error=e.first_name, wrapper_class="sm:col-span-2", maxlength=100, autocomplete="given-name", aria_describedby="name-error" if e.name else none) }}
-      {{ field("last_name", "Last name", v.last_name, error=e.last_name, wrapper_class="sm:col-span-3", maxlength=100, autocomplete="family-name") }}
-      {{ field("company_name", "Company or trading name", v.company_name, error=e.company_name, optional=True, wrapper_class="sm:col-span-6", maxlength=200, autocomplete="organization") }}
-    </div>
+    {% include "customers/_name_fields.html" %}
   {% endcall %}
 
   {% call card("Contact", "At least one phone number or an email address.") %}
@@ -52,6 +49,7 @@
   {% call card("Notes and preferences") %}
     <div class="space-y-4">
       {{ field("notes", "Notes", v.notes, type="textarea", rows=4, optional=True, hint="Anything useful for the shop: access, preferences, parking, pets…") }}
+      {% include "customers/_vat_fields.html" %}
       {{ checkbox("marketing_consent", "Happy to receive marketing messages", checked=v.marketing_consent, hint="Only tick this if the customer has agreed.") }}
     </div>
   {% endcall %}

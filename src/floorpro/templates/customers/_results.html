@@ -21,7 +21,7 @@
         <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-ink-600">{{ c.reference }}</td>
         <td class="px-4 py-3 text-sm">
           <a href="/customers/{{ c.id }}" class="font-medium text-ink-900 hover:text-brand-700">{{ c.display_name }}</a>
-          {%- if c.customer_type == "trade" %} {{ badge("trade") }}{% endif %}
+          {{ badge(c.customer_type) }}
           {%- if c.is_archived %} {{ badge("archived") }}{% endif %}
         </td>
         <td class="whitespace-nowrap px-4 py-3 text-sm text-ink-700">{{ c.primary_phone or "" }}</td>

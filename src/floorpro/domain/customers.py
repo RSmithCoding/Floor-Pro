@@ -38,3 +38,21 @@ def sort_name(first: str | None, last: str | None, company: str | None) -> str:
     if last:
         return f"{last}, {first}" if first else last
     return company or first or ""
+
+
+def resolve_vat_breakdown(
+    old_type: str | None, new_type: str, requested: bool | None, previous: bool = False
+) -> bool:
+    """The "show VAT breakdown" rule (data-model.md, FR-026/FR-027).
+
+    Trade customers always get a breakdown. For domestic customers an explicit choice wins;
+    with no choice, a former trade customer keeps it on, otherwise the previous value stays
+    (``False`` for a new customer).
+    """
+    if new_type == "trade":
+        return True
+    if requested is not None:
+        return requested
+    if old_type == "trade":
+        return True
+    return previous

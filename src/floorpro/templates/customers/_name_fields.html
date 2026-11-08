@@ -1,0 +1,19 @@
+{% from "components/field.html" import field %}
+{#- Name fields. Trade customers see the company/trading name first (FR-029). -#}
+{%- set v = values %}
+{%- set e = errors %}
+{%- set trade = v.customer_type == "trade" %}
+<div id="name-fields"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {%- if e.name %}<p id="name-error" class="mb-4 text-sm text-danger-700" role="alert">{{ e.name }}</p>{% endif %}
+  <div class="grid gap-4 sm:grid-cols-6">
+    {%- if trade %}
+    {{ field("company_name", "Company or trading name", v.company_name, error=e.company_name, wrapper_class="sm:col-span-6", maxlength=200, autocomplete="organization", hint="Sole traders can leave this blank and just use their own name.") }}
+    {%- endif %}
+    {{ field("title", "Title", v.title, error=e.title, optional=True, wrapper_class="sm:col-span-1", maxlength=20, autocomplete="honorific-prefix") }}
+    {{ field("first_name", "First name", v.first_name, error=e.first_name, wrapper_class="sm:col-span-2", maxlength=100, autocomplete="given-name") }}
+    {{ field("last_name", "Last name", v.last_name, error=e.last_name, wrapper_class="sm:col-span-3", maxlength=100, autocomplete="family-name") }}
+    {%- if not trade %}
+    {{ field("company_name", "Company or trading name", v.company_name, error=e.company_name, optional=True, wrapper_class="sm:col-span-6", maxlength=200, autocomplete="organization") }}
+    {%- endif %}
+  </div>
+</div>

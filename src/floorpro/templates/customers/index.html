@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "components/button.html" import button %}
+{% from "components/select.html" import radio_group %}
 {% block title %}Customers · FloorPro{% endblock %}
 {% block content %}
 <div class="flex flex-wrap items-end justify-between gap-4">
@@ -21,7 +22,7 @@
            placeholder="Start typing to search…"
            class="block w-full rounded-control border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-ink-900 shadow-sm ring-1 ring-inset ring-ink-300 placeholder:text-ink-500 focus:ring-2 focus:ring-brand-600">
   </div>
-  {% block filters %}<input type="hidden" name="type" value="{{ customer_type }}">{% endblock %}
+  {{ radio_group("type", "Customer type", [("all", "All", None), ("domestic", "Domestic", None), ("trade", "Trade", None)], selected=customer_type, wrapper_class="[&>legend]:sr-only [&>div]:mt-0") }}
   <label class="inline-flex items-center gap-2 text-sm text-ink-700">
     <input type="checkbox" name="archived" value="1" class="size-4 rounded accent-brand-600"{% if archived %} checked{% endif %}>
     Show archived

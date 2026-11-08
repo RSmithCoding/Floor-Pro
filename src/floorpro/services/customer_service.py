@@ -11,7 +11,7 @@ from datetime import UTC
 from sqlalchemy import Select, func, literal, or_, select
 from sqlalchemy.orm import Session
 
-from floorpro.domain.customers import parse_reference, person_name
+from floorpro.domain.customers import parse_reference, person_name, resolve_vat_breakdown
 from floorpro.domain.validation import (
     looks_like_phone,
     normalise_postcode,
@@ -37,9 +37,13 @@ def _apply_form(customer: Customer, form: CustomerForm) -> list[str]:
     for field in TEXT_FIELDS:
         setattr(customer, field, getattr(form, field))
     customer.marketing_consent = form.marketing_consent
+    customer.show_vat_breakdown = resolve_vat_breakdown(
+        customer.customer_type,
+        form.customer_type,
+        form.show_vat_breakdown,
+        previous=bool(customer.show_vat_breakdown),
+    )
     customer.customer_type = form.customer_type
-    # Minimal guard so the database rule always holds; the full rules arrive with US4.
-    customer.show_vat_breakdown = form.show_vat_breakdown or form.customer_type == "trade"
 
     customer.mobile_phone_digits = phone_digits(form.mobile_phone) if form.mobile_phone else None
     customer.other_phone_digits = phone_digits(form.other_phone) if form.other_phone else None

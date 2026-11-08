@@ -1,0 +1,3 @@
+{#- Response to a Domestic/Trade switch: the VAT group, plus the name fields out of band. -#}
+{% include "customers/_vat_fields.html" %}
+{% with oob = True %}{% include "customers/_name_fields.html" %}{% endwith %}

@@ -49,7 +49,8 @@ class CustomerForm(BaseModel):
     notes: Opt = None  # no length limit
     marketing_consent: bool = False
     customer_type: Literal["domestic", "trade"] = "domestic"
-    show_vat_breakdown: bool = False
+    # None = the VAT section wasn't on the form, so the rule keeps the previous value.
+    show_vat_breakdown: bool | None = None
 
     @field_validator(*TEXT_FIELDS, mode="before")
     @classmethod
@@ -97,7 +98,12 @@ def from_form(data: Mapping[str, str]) -> tuple[CustomerForm | None, dict[str, s
     """Parse submitted form data. Returns ``(form, {})`` or ``(None, {field: message})``."""
     raw = {name: data.get(name) for name in TEXT_FIELDS}
     raw["marketing_consent"] = data.get("marketing_consent") == "on"
-    raw["show_vat_breakdown"] = data.get("show_vat_breakdown") == "on"
+    if data.get("show_vat_breakdown") == "on":
+        raw["show_vat_breakdown"] = True
+    elif data.get("vat_fields_present") == "1":
+        raw["show_vat_breakdown"] = False  # the box was shown and left unticked
+    else:
+        raw["show_vat_breakdown"] = None
     raw["customer_type"] = data.get("customer_type") or "domestic"
 
     errors: dict[str, str] = {}

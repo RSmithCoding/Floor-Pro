@@ -572,14 +572,14 @@ preferences, the filter, and that trade can't turn the breakdown off (quickstart
 
 ### Tests for User Story 4 ⚠️ Write first, confirm they fail
 
-- [ ] T065 [P] [US4] Write `tests/unit/test_vat_breakdown.py`, covering every row of the data-model.md "Customer type rules" table for `resolve_vat_breakdown(old_type, new_type, requested)`:
+- [X] T065 [P] [US4] Write `tests/unit/test_vat_breakdown.py`, covering every row of the data-model.md "Customer type rules" table for `resolve_vat_breakdown(old_type, new_type, requested)`:
   - `(None, "domestic", None)` → `False`
   - `(None, "trade", False)` → `True`
   - `("domestic", "trade", False)` → `True`
   - `("trade", "domestic", None)` → `True` (stays on)
   - `("trade", "domestic", False)` → `False` (an explicit untick once it's editable)
   - `("domestic", "domestic", True)` → `True`
-- [ ] T066 [P] [US4] Write `tests/integration/test_customer_types.py`, covering spec scenarios 4.1–4.5.
+- [X] T066 [P] [US4] Write `tests/integration/test_customer_types.py`, covering spec scenarios 4.1–4.5.
 
   **Saving types**:
   - a new customer saved without a type is domestic with the breakdown off
@@ -600,17 +600,17 @@ preferences, the filter, and that trade can't turn the breakdown off (quickstart
 
 ### Implementation for User Story 4
 
-- [ ] T067 [US4] Implement `resolve_vat_breakdown(old_type: str | None, new_type: str, requested: bool | None) -> bool` in `src/floorpro/domain/customers.py` so T065 passes:
+- [X] T067 [US4] Implement `resolve_vat_breakdown(old_type: str | None, new_type: str, requested: bool | None) -> bool` in `src/floorpro/domain/customers.py` so T065 passes:
   - trade always returns `True`
   - for domestic, an explicit `requested` wins
   - when `requested is None`, the previous value is kept, or `False` for a new customer
-- [ ] T068 [US4] Update `src/floorpro/services/customer_service.py`:
+- [X] T068 [US4] Update `src/floorpro/services/customer_service.py`:
   - `create` and `update` set `show_vat_breakdown = resolve_vat_breakdown(old_type, form.customer_type, form.show_vat_breakdown)`
   - implement the `customer_type` filter in `search` (`all`/`domestic`/`trade`), using the `(is_archived, customer_type)` index
-- [ ] T069 [US4] Update `src/floorpro/routes/customers.py`:
+- [X] T069 [US4] Update `src/floorpro/routes/customers.py`:
   - add `GET /customers/form/vat-fields`, which renders `_vat_fields.html` from `customer_type`, `show_vat_breakdown` and `original_type`
   - pass the `type` query parameter through `GET /customers`
-- [ ] T070 [P] [US4] Update the templates for customer types:
+- [X] T070 [P] [US4] Update the templates for customer types:
   - **`src/floorpro/templates/customers/_vat_fields.html`**: the "Show VAT breakdown on quotes and invoices" checkbox. For trade it's checked and disabled, with a hidden `on` value and the hint "Always shown for trade customers". For domestic the hint is "Turn on for customers who need VAT shown separately, e.g. insurance jobs."
   - **`src/floorpro/templates/customers/_form.html`**: a Domestic/Trade segmented radio at the top that triggers `hx-get="/customers/form/vat-fields"` into the VAT fields group, and moves the company/trading name field into the Name section when Trade is selected
   - **`src/floorpro/templates/customers/index.html`**: an All/Domestic/Trade filter control wired to `type`
