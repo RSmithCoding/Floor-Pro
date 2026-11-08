@@ -126,8 +126,10 @@ restraint keep a growing feature set maintainable.
   resources (templates, static files, migrations) through a single path helper that works in
   both development and frozen builds.
 - **Data location**: The database, backups and logs MUST live in the operating system's
-  per-user application-data directory. They MUST NOT live beside the executable or in the
-  working directory.
+  per-user application-data directory by default. They MUST NOT live beside the executable or
+  in the working directory. The user MAY choose an additional folder for backups (for example
+  a USB drive or a cloud-synced folder) and MAY save copies of backups anywhere. Backups
+  written outside the application-data directory MUST be encrypted.
 - **Logging**: Errors MUST be written to a rotating local log file with enough context to
   diagnose a shop's problem without exposing customer data unnecessarily.
 - **Target platforms**: The finished product MUST run on both Windows and macOS, with separate
@@ -174,4 +176,4 @@ restraint keep a growing feature set maintainable.
 - Compliance is reviewed at plan time (Constitution Check) and again before each release.
   Any deviation MUST be justified in writing. Otherwise it MUST be fixed before release.
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-07
+**Version**: 1.1.1 | **Ratified**: 2026-11-07 | **Last Amended**: 2026-11-08

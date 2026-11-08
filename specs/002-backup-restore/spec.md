@@ -52,7 +52,7 @@ confirm every customer and setting is exactly as it was when the backup was made
 
 1. **Given** a list of backups, **When** the user chooses **Restore** on one, **Then** they see
    its date, type and contents (customer count), a clear warning that everything changed since
-   then will be replaced, and must confirm by typing `RESTORE` before anything happens.
+   then will be replaced, and must confirm by typing `RESTORE` (capital letters not required) before anything happens.
 2. **Given** the user confirms a restore, **When** it runs, **Then** FloorPro first makes a
    "Before restore" backup of the current data, then replaces the data with the chosen backup,
    and shows "Restored the backup from 3 Nov 2026, 17:30". The restored data appears straight
@@ -157,7 +157,8 @@ on another computer works only with the correct password.
 - **Backup from a newer FloorPro version**: restoring is refused with "This backup was made by a
   newer version of FloorPro. Update FloorPro first." Current data is untouched.
 - **Backup from an older FloorPro version**: it is restored, then upgraded to the current
-  version automatically (with the usual pre-upgrade backup).
+  version automatically. The upgrade happens on a temporary copy before anything is replaced,
+  so the backup file itself is never changed and can be restored again.
 - **File that isn't a FloorPro backup, or is damaged**: refused with a clear message before
   anything is changed.
 - **Damaged data at startup** (deferred from feature 001): if FloorPro can't open the shop's
@@ -211,7 +212,9 @@ on another computer works only with the correct password.
   that all changes since then will be replaced, and require the user to type `RESTORE` to
   confirm.
 - **FR-011**: Before replacing any data, the system MUST make a "Before restore" backup of the
-  current data. If that backup can't be made, the restore MUST NOT go ahead.
+  current data. If that backup can't be made, the restore MUST NOT go ahead. The Before
+  restore backup is always saved in FloorPro's own data folder, so a restore never depends on
+  the chosen backup folder being available.
 - **FR-012**: A restore MUST be all-or-nothing: if it fails at any point, the current data stays
   exactly as it was.
 - **FR-013**: The system MUST check a backup is a genuine, undamaged FloorPro backup before
@@ -225,7 +228,8 @@ on another computer works only with the correct password.
 **Automatic backups and retention**
 
 - **FR-017**: When automatic backups are on (the default), the system MUST make one automatic
-  backup on the first start of FloorPro each calendar day, without delaying the user.
+  backup on the first start of FloorPro each calendar day (or the first dashboard visit that
+  day, if FloorPro was left open), without delaying the user.
 - **FR-018**: The system MUST keep the 14 most recent automatic backups and delete older
   automatic ones. Manual, Before restore and Before upgrade backups MUST NOT be deleted by this
   rule (Before upgrade backups keep their existing limit of 10).
@@ -305,6 +309,8 @@ on another computer works only with the correct password.
   several tills or PCs is out of scope.
 - No user accounts exist yet, so anyone using the shop computer can back up and restore. The
   typed `RESTORE` confirmation guards against accidents.
+- If FloorPro is left open past midnight, the day's automatic backup runs the next time the
+  dashboard is opened.
 - The backup password protects backup files *away from* the shop computer (USB drives, cloud
   folders, a stolen drive). It doesn't protect the shop computer itself: anyone who can use
   FloorPro on that computer can make and restore backups.
