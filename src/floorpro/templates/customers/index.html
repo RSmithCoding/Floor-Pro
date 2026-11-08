@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "components/button.html" import button %}
+{% block title %}Customers · FloorPro{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-ink-900">Customers</h1>
+    <p class="mt-1 text-sm text-ink-600">Search by name, company, phone, postcode, email or reference.</p>
+  </div>
+  {{ button("Add customer", href="/customers/new") }}
+</div>
+
+<form id="customer-filters" action="/customers" method="get" role="search"
+      hx-get="/customers" hx-target="#results" hx-push-url="true"
+      hx-trigger="input changed delay:250ms from:#q, search from:#q, change"
+      class="mt-6 flex flex-wrap items-center gap-4">
+  <div class="relative min-w-72 flex-1">
+    <label for="q" class="sr-only">Search customers</label>
+    <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-ink-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z" clip-rule="evenodd"/></svg>
+    <input id="q" type="search" name="q" value="{{ q }}" autocomplete="off" autofocus
+           placeholder="Start typing to search…"
+           class="block w-full rounded-control border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-ink-900 shadow-sm ring-1 ring-inset ring-ink-300 placeholder:text-ink-500 focus:ring-2 focus:ring-brand-600">
+  </div>
+  {% block filters %}<input type="hidden" name="type" value="{{ customer_type }}">{% endblock %}
+  <label class="inline-flex items-center gap-2 text-sm text-ink-700">
+    <input type="checkbox" name="archived" value="1" class="size-4 rounded accent-brand-600"{% if archived %} checked{% endif %}>
+    Show archived
+  </label>
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="dir" value="{{ direction }}">
+</form>
+
+<div id="results" class="mt-4">
+  {% include "customers/_results.html" %}
+</div>
+{% endblock %}

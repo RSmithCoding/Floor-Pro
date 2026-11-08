@@ -1,0 +1,4 @@
+{#- Render keyword arguments as HTML attributes: hx_get="/x" -> hx-get="/x". True -> bare attribute. -#}
+{% macro attrs(kw) -%}
+{%- for key, value in kw.items() if value is not none and value is not false %} {{ key|replace("_", "-") }}{% if value is not true %}="{{ value }}"{% endif %}{% endfor -%}
+{%- endmacro %}

@@ -52,3 +52,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# --- Generated CSS and dev database ---
+src/floorpro/static/css/app.css
+dev-data/

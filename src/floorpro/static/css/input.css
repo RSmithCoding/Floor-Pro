@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@source "../../templates";
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/InterVariable.woff2") format("woff2");
+}
+
+/* Design tokens. Text/background pairings used in templates meet WCAG 2.1 AA (≥ 4.5:1),
+   measured: brand-700/white 8.1 · white/brand-600 6.2 · brand-700/brand-50 7.6 ·
+   ink-600/white 7.6 · ink-500/white 5.4 · ink-500/ink-50 5.0 · ink-700/ink-100 9.5 ·
+   white/danger-600 5.7 · danger-700/danger-50 6.9 · warning-800/warning-50 7.9 ·
+   success-800/success-50 8.6 · oak-800/oak-100 7.2. Don't use ink-300 or lighter for text. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-brand-50: #eefaf6;
+  --color-brand-100: #d5f2e8;
+  --color-brand-200: #aee4d3;
+  --color-brand-500: #12866f;
+  --color-brand-600: #0d6e5b;
+  --color-brand-700: #0b5a4b;
+  --color-brand-800: #0a4a3e;
+  --color-brand-900: #083c33;
+
+  --color-oak-100: #f6ecdb;
+  --color-oak-500: #b7791f;
+  --color-oak-800: #6b4511;
+
+  --color-ink-50: #f7f7f6;
+  --color-ink-100: #efeeec;
+  --color-ink-200: #e2e0dc;
+  --color-ink-300: #cbc8c2;
+  --color-ink-500: #6f6a62;
+  --color-ink-600: #57534c;
+  --color-ink-700: #3f3c37;
+  --color-ink-900: #1c1a17;
+
+  --color-success-50: #ecfdf3;
+  --color-success-600: #15803d;
+  --color-success-800: #14532d;
+  --color-warning-50: #fff8eb;
+  --color-warning-500: #d97706;
+  --color-warning-800: #7c3d06;
+  --color-danger-50: #fef2f2;
+  --color-danger-600: #c81e1e;
+  --color-danger-700: #a51b1b;
+
+  --radius-card: 0.875rem;
+  --radius-control: 0.5rem;
+
+  --shadow-card: 0 1px 2px rgb(28 26 23 / 0.06), 0 1px 3px rgb(28 26 23 / 0.08);
+}
+
+@layer base {
+  html {
+    @apply bg-ink-50 text-ink-900 antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+}
+
+/* Toasts fade out after 4 seconds without JavaScript. */
+@keyframes toast-life {
+  0% { opacity: 0; transform: translateY(0.5rem); }
+  6% { opacity: 1; transform: translateY(0); }
+  88% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+.toast {
+  animation: toast-life 4.5s ease forwards;
+}
+
+dialog.modal {
+  @apply m-auto w-full max-w-lg rounded-card bg-white p-0 text-ink-900 shadow-2xl;
+}
+dialog.modal::backdrop {
+  background: rgb(28 26 23 / 0.45);
+}
+
+.htmx-request.htmx-indicator,
+.htmx-request .htmx-indicator {
+  opacity: 1;
+}
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}

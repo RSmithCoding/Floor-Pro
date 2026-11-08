@@ -1,0 +1,13 @@
+{% set _toast_styles = {
+  "success": ("bg-success-50 text-success-800 ring-success-600/30", "M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z"),
+  "error": ("bg-danger-50 text-danger-700 ring-danger-600/30", "M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-1 4h2v5H9V6Zm0 7h2v2H9v-2Z"),
+  "warning": ("bg-warning-50 text-warning-800 ring-warning-500/40", "M10 2 1 18h18L10 2Zm-1 6h2v4H9V8Zm0 6h2v2H9v-2Z"),
+  "info": ("bg-white text-ink-700 ring-ink-300", "M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-1 7h2v6H9V9Zm0-4h2v2H9V5Z"),
+} %}
+{% macro toast(kind, message) -%}
+{%- set cls, icon = _toast_styles.get(kind, _toast_styles["info"]) -%}
+<div class="toast pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-card px-4 py-3 text-sm font-medium shadow-lg ring-1 {{ cls }}" role="status">
+  <svg class="mt-0.5 size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="{{ icon }}"/></svg>
+  <span>{{ message }}</span>
+</div>
+{%- endmacro %}

@@ -1,0 +1,44 @@
+{% from "components/table.html" import sort_header, plain_header %}
+{% from "components/empty_state.html" import empty_state %}
+{% from "components/badge.html" import badge %}
+{%- set customers = result.customers %}
+<div class="overflow-hidden rounded-card bg-white shadow-card ring-1 ring-ink-200/70">
+  {%- if customers %}
+  <table class="min-w-full divide-y divide-ink-100">
+    <thead class="bg-ink-50">
+      <tr>
+        {{ sort_header("Reference", "reference", sort, direction, "/customers", params, "w-28") }}
+        {{ sort_header("Name", "name", sort, direction, "/customers", params) }}
+        {{ plain_header("Phone") }}
+        {{ plain_header("Postcode") }}
+        {{ plain_header("Email") }}
+        {{ sort_header("Added", "created", sort, direction, "/customers", params, "w-32") }}
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-ink-100">
+      {%- for c in customers %}
+      <tr data-customer-row class="hover:bg-ink-50">
+        <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-ink-600">{{ c.reference }}</td>
+        <td class="px-4 py-3 text-sm">
+          <a href="/customers/{{ c.id }}" class="font-medium text-ink-900 hover:text-brand-700">{{ c.display_name }}</a>
+          {%- if c.customer_type == "trade" %} {{ badge("trade") }}{% endif %}
+          {%- if c.is_archived %} {{ badge("archived") }}{% endif %}
+        </td>
+        <td class="whitespace-nowrap px-4 py-3 text-sm text-ink-700">{{ c.primary_phone or "" }}</td>
+        <td class="whitespace-nowrap px-4 py-3 text-sm text-ink-700">{{ c.postcode or "" }}</td>
+        <td class="px-4 py-3 text-sm text-ink-700">{{ c.email or "" }}</td>
+        <td class="whitespace-nowrap px-4 py-3 text-sm text-ink-600">{{ c.created_at|local_date }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  <p class="border-t border-ink-100 px-4 py-2.5 text-xs text-ink-500">
+    {%- if result.total > customers|length %}Showing {{ customers|length }} of {{ result.total }} — refine your search to see more.
+    {%- else %}{{ result.total }} customer{{ "" if result.total == 1 else "s" }}{% endif -%}
+  </p>
+  {%- elif q %}
+  {{ empty_state("No customers found", "Nothing matches “" ~ q ~ "”.", "Add '" ~ q ~ "' as a new customer", "/customers/new?prefill=" ~ (q|urlencode)) }}
+  {%- else %}
+  {{ empty_state("No customers yet", "Customers you add will appear here.", "Add customer", "/customers/new") }}
+  {%- endif %}
+</div>

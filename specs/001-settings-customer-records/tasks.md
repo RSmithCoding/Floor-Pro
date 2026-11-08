@@ -36,35 +36,35 @@ Single package, src layout: `src/floorpro/…`, `tests/…`, `scripts/…` at th
 
 **Purpose**: Project initialisation, tooling, assets and CI
 
-- [ ] T001 Create the directory layout from plan.md, with an empty `__init__.py` in each Python package. Directories:
+- [X] T001 Create the directory layout from plan.md, with an empty `__init__.py` in each Python package. Directories:
   - `src/floorpro/` with `domain/`, `models/`, `schemas/`, `services/`, `routes/` and `migrations/versions/`
   - `src/floorpro/templates/` with `components/`, `errors/`, `settings/` and `customers/`
   - `src/floorpro/static/` with `css/`, `js/`, `vendor/` and `fonts/`
   - `tests/` with `unit/`, `integration/` and `migrations/`
   - `scripts/`
-- [ ] T002 Create `pyproject.toml` and `.python-version`, then run `uv lock` and `uv sync` to produce `uv.lock`:
+- [X] T002 Create `pyproject.toml` and `.python-version`, then run `uv lock` and `uv sync` to produce `uv.lock`:
   - **Project**: `name = "floorpro"`, `requires-python = ">=3.13"` (the interpreter actually used is pinned by `.python-version`)
   - **Build**: hatchling backend with src layout. Package data includes `templates/**`, `static/**` and `migrations/**`
   - **Runtime dependencies**: fastapi, uvicorn, sqlalchemy>=2.0, alembic, jinja2, pydantic>=2, email-validator, python-multipart, platformdirs, pywebview>=5
   - **Dev dependency group**: pytest, httpx, ruff
   - **Entry point**: `[project.scripts] floorpro = "floorpro.desktop:main"`
   - **`.python-version`**: `3.13`
-- [ ] T003 [P] Add ruff and pytest configuration to `pyproject.toml`:
+- [X] T003 [P] Add ruff and pytest configuration to `pyproject.toml`:
   - **Ruff**: `line-length = 100`, `target-version = "py313"`, lint `select = ["E","F","I","UP","B","SIM"]`
   - **pytest**: `testpaths = ["tests"]`, `markers = ["slow: 10k-row performance tests"]`, `addopts = "--strict-markers"`
-- [ ] T004 [P] Create `scripts/fetch_tailwind.py`. It downloads the Tailwind CSS v4 standalone CLI to the repo root (both names are already gitignored):
+- [X] T004 [P] Create `scripts/fetch_tailwind.py`. It downloads the Tailwind CSS v4 standalone CLI to the repo root (both names are already gitignored):
   - **Version**: pinned in a constant `TAILWIND_VERSION` (an exact v4 release at least 2 weeks old)
   - **Platform asset**: chosen from `platform.system()`/`platform.machine()`: `tailwindcss-macos-x64`, `tailwindcss-macos-arm64`, `tailwindcss-windows-x64.exe` or `tailwindcss-linux-x64`
   - **Output**: saved as `tailwindcss` (or `tailwindcss.exe` on Windows) and made executable on POSIX. The version is written to `tailwindcss-version.txt`
   - **Re-runs**: skip the download if the recorded version already matches
-- [ ] T005 [P] Create `scripts/build_css.py`:
+- [X] T005 [P] Create `scripts/build_css.py`:
   - runs the Tailwind binary with `-i src/floorpro/static/css/input.css -o src/floorpro/static/css/app.css --minify`
   - supports `--watch` and fails with a clear message if the binary is missing
   - add `src/floorpro/static/css/app.css` to `.gitignore`
-- [ ] T006 [P] Vendor HTMX into `src/floorpro/static/vendor/htmx.min.js`:
+- [X] T006 [P] Vendor HTMX into `src/floorpro/static/vendor/htmx.min.js`:
   - use an exact 2.0.x release at least 2 weeks old
   - record the name, version and source URL in `src/floorpro/static/vendor/VERSIONS.md`
-- [ ] T007 [P] Create `.github/workflows/ci.yml`, run on push and pull_request:
+- [X] T007 [P] Create `.github/workflows/ci.yml`, run on push and pull_request:
   - **Matrix**: `os: [macos-latest, windows-latest]`
   - **Steps**:
     1. checkout
@@ -75,7 +75,7 @@ Single package, src layout: `src/floorpro/…`, `tests/…`, `scripts/…` at th
     6. `uv run python scripts/fetch_tailwind.py`
     7. `uv run python scripts/build_css.py`
     8. `uv run pytest` (the slow tests run too)
-- [ ] T008 [P] Create the dev-only `alembic.ini` at the repo root:
+- [X] T008 [P] Create the dev-only `alembic.ini` at the repo root:
   - `script_location = src/floorpro/migrations`
   - `sqlalchemy.url = sqlite:///dev-data/floorpro.db`
   - add `dev-data/` to `.gitignore`
@@ -89,35 +89,35 @@ story needs.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 [P] Create `src/floorpro/paths.py` (`pathlib` only):
+- [X] T009 [P] Create `src/floorpro/paths.py` (`pathlib` only):
   - `resource_path(relative: str) -> Path`: uses `Path(sys._MEIPASS) / "floorpro"` when `getattr(sys, "frozen", False)`, otherwise `Path(__file__).parent`
   - `data_dir() -> Path`: env var `FLOORPRO_DATA_DIR` if set, else `platformdirs.user_data_dir("FloorPro", appauthor=False)`. Creates the directory
   - `backups_dir()` and `logs_dir()`: subfolders of `data_dir()`, created on demand
   - `secret_key() -> bytes`: reads `data_dir()/secret.key`, creating it on first use with `secrets.token_bytes(32)`
-- [ ] T010 [P] Create `src/floorpro/logging_setup.py` with `configure_logging()`:
+- [X] T010 [P] Create `src/floorpro/logging_setup.py` with `configure_logging()`:
   - a `RotatingFileHandler` at `logs_dir()/floorpro.log` (1 MB × 5 files)
   - format: time, level, logger, message
   - a module docstring stating that log messages must not include customer personal data (use customer references instead)
-- [ ] T011 [P] Write failing tests in `tests/unit/test_money.py`:
+- [X] T011 [P] Write failing tests in `tests/unit/test_money.py`:
   - `round_money(Decimal("1.005")) == Decimal("1.01")` (ROUND_HALF_UP, 2 dp)
   - `to_minor_units(Decimal("12.34")) == 1234` and `from_minor_units(1234) == Decimal("12.34")`
   - `percent_to_bp(Decimal("17.5")) == 1750` and `bp_to_percent(2000) == Decimal("20.00")`
   - `percent_to_bp` rejects more than 2 decimal places
   - every function raises `TypeError` when given a `float`
-- [ ] T012 Implement `src/floorpro/domain/money.py` so T011 passes. This is the single rounding module (Principle II): `MONEY_PLACES = Decimal("0.01")` and `ROUNDING = ROUND_HALF_UP`. No float is accepted anywhere.
-- [ ] T013 [P] Write failing tests in `tests/unit/test_currency.py`:
+- [X] T012 Implement `src/floorpro/domain/money.py` so T011 passes. This is the single rounding module (Principle II): `MONEY_PLACES = Decimal("0.01")` and `ROUNDING = ROUND_HALF_UP`. No float is accepted anywhere.
+- [X] T013 [P] Write failing tests in `tests/unit/test_currency.py`:
   - `SUPPORTED_CURRENCIES` holds exactly GBP (£, "Pound sterling"), EUR (€, "Euro") and USD ($, "US dollar")
   - `get_currency("XYZ")` raises `ValueError`
   - `format_money(Decimal("1234.5"), "GBP") == "£1,234.50"`
   - `format_money(Decimal("-3"), "EUR") == "-€3.00"`
-- [ ] T014 Implement `src/floorpro/domain/currency.py` so T013 passes. Use a frozen dataclass `Currency(code, symbol, name)`. Amounts always show exactly two decimal places (FR-008).
-- [ ] T015 Create `src/floorpro/models/base.py`:
+- [X] T014 Implement `src/floorpro/domain/currency.py` so T013 passes. Use a frozen dataclass `Currency(code, symbol, name)`. Amounts always show exactly two decimal places (FR-008).
+- [X] T015 Create `src/floorpro/models/base.py`:
   - `class Base(DeclarativeBase)` with a `MetaData(naming_convention=…)` covering `ix`, `uq`, `ck`, `fk` and `pk`, so Alembic batch mode can alter constraints
   - `Money` TypeDecorator: `Integer` ↔ `Decimal` via `to_minor_units`/`from_minor_units`
   - `Percent` TypeDecorator: `Integer` basis points ↔ `Decimal` via `percent_to_bp`/`bp_to_percent`
   - `UTCDateTime` TypeDecorator: stores naive UTC, returns timezone-aware UTC, and rejects naive input
   - `utcnow()` helper
-- [ ] T016 [P] Create `src/floorpro/models/settings.py` with the `BusinessSettings` model (table `business_settings`), per data-model.md §1. **Columns:**
+- [X] T016 [P] Create `src/floorpro/models/settings.py` with the `BusinessSettings` model (table `business_settings`), per data-model.md §1. **Columns:**
   - `id` INTEGER PK, `CHECK (id = 1)`, default 1
   - `currency_code` TEXT(3) NOT NULL, default `'GBP'`
   - `vat_registered` Boolean NOT NULL, default true
@@ -132,7 +132,7 @@ story needs.
   - `changed_at` UTCDateTime NOT NULL, indexed
   - `field` TEXT NOT NULL with `CHECK (field IN ('currency_code','vat_registered','vat_rate','vat_number','price_entry_mode'))`
   - `old_value` TEXT NULL and `new_value` TEXT NULL
-- [ ] T017 [P] Create `src/floorpro/models/customer.py` with the `Customer` model (table `customer`, `sqlite_autoincrement=True`), per data-model.md §3. **Identity and type:**
+- [X] T017 [P] Create `src/floorpro/models/customer.py` with the `Customer` model (table `customer`, `sqlite_autoincrement=True`), per data-model.md §3. **Identity and type:**
   - `id` INTEGER PK AUTOINCREMENT
   - a read-only `reference` property (not a column) returning `f"C-{self.id:05d}"` (research.md §4)
   - `customer_type` TEXT NOT NULL, default `'domestic'`, `CHECK (customer_type IN ('domestic','trade'))`
@@ -167,27 +167,27 @@ story needs.
   - `CHECK (customer_type = 'domestic' OR show_vat_breakdown = 1)`
 
   **Indexes**: `last_name`, `company_name`, `email`, `mobile_phone_digits`, `other_phone_digits`, `postcode_compact`, and a composite `(is_archived, customer_type)`.
-- [ ] T018 Create `src/floorpro/db.py`:
+- [X] T018 Create `src/floorpro/db.py`:
   - `make_engine(db_path: Path)`: an SQLite engine with a `connect` event that runs `PRAGMA foreign_keys=ON`, `PRAGMA journal_mode=WAL` and `PRAGMA busy_timeout=5000`
   - `make_sessionmaker(engine)` with `expire_on_commit=False`
   - FastAPI dependency `get_session(request)`: yields a session from `request.app.state.sessionmaker`, commits on success and rolls back on exception
-- [ ] T019 Create the Alembic environment and initial migration:
+- [X] T019 Create the Alembic environment and initial migration:
   - **`src/floorpro/migrations/env.py`**: uses `Base.metadata` from `floorpro.models` with `render_as_batch=True`, and takes its connection from `config.attributes["connection"]` when provided
   - **`src/floorpro/migrations/versions/0001_initial.py`**: creates `business_settings`, `settings_change` and `customer` exactly as in T016/T017 (all CHECKs and indexes), with `down_revision = None`
   - **`src/floorpro/models/__init__.py`**: imports all models so `Base.metadata` is complete
-- [ ] T020 Create `src/floorpro/migrate.py`:
+- [X] T020 Create `src/floorpro/migrate.py`:
   - `alembic_config(db_path)`: builds `alembic.config.Config()` in code with `script_location = str(resource_path("migrations"))`. It doesn't read any ini file
   - `current_revision(db_path)` and `head_revision()`
   - `backup_if_needed(db_path) -> Path | None`: only if the file exists and isn't at head. Copies it with `sqlite3.Connection.backup` to `backups_dir()/f"floorpro-{UTC:%Y%m%dT%H%M%SZ}-pre-{head}.db"`, then deletes all but the 10 newest `floorpro-*-pre-*.db` files
   - `upgrade_to_head(db_path)`: calls `backup_if_needed` first. Then it opens `make_engine(db_path)` and, inside `engine.begin() as conn`, sets `cfg.attributes["connection"] = conn` before running `command.upgrade(cfg, "head")`. env.py (T019) uses that connection and never reads a URL
-- [ ] T021 [P] Write `tests/migrations/test_migrations.py`:
+- [X] T021 [P] Write `tests/migrations/test_migrations.py`:
   - **Empty database**: `upgrade_to_head` on a new path creates all three tables with their CHECK constraints, verified by an insert that violates each CHECK raising `IntegrityError`
   - **Pre-migration backup**: create a database with an unrelated table and one row, not at head. `upgrade_to_head` creates exactly one `backups/floorpro-*-pre-0001*.db` containing that row, and the original row survives
   - **Already at head**: running again creates no new backup
   - **Backup retention**: only the 10 newest backups are kept
   - **Realistic data** (Principle III): after upgrading to head, insert a full `business_settings` row with non-default values, 3 `settings_change` rows, and 5 customers (domestic and trade, archived and active, with all optional fields filled). Run `upgrade_to_head` again and check every row and value is unchanged. Future migrations must extend this fixture with that migration's previous schema
-- [ ] T022 Create `src/floorpro/services/settings_service.py` (foundational part only). `ensure_settings(session) -> tuple[BusinessSettings, bool]` returns the single row. If the row is missing, it creates the defaults (GBP, VAT registered, 20%, `inc_vat`) and returns `created=True`. Add `get_settings(session)` as well.
-- [ ] T023 Create `src/floorpro/templating.py`:
+- [X] T022 Create `src/floorpro/services/settings_service.py` (foundational part only). `ensure_settings(session) -> tuple[BusinessSettings, bool]` returns the single row. If the row is missing, it creates the defaults (GBP, VAT registered, 20%, `inc_vat`) and returns `created=True`. Add `get_settings(session)` as well.
+- [X] T023 Create `src/floorpro/templating.py`:
   - `templates = Jinja2Templates(directory=resource_path("templates"))`
   - **Filters**: `money(value)` (uses the currency in `request.state.settings` via `format_money`), `percent(value)` (`Decimal("17.50")` → `"17.5%"`, `Decimal("20.00")` → `"20%"`) and `local_datetime(dt)` (UTC → local time, format `"7 Nov 2026, 14:05"`)
   - **`is_partial(request)`**: true when `HX-Request` is present and `HX-Boosted` is absent
@@ -196,7 +196,7 @@ story needs.
     - `flash_redirect(url, kind, message)`: returns a `303` with a short-lived `flash` cookie signed with HMAC over `paths.secret_key()`
     - `pop_flash(request)`: reads and verifies the cookie and returns the message, and the response clears the cookie
     - `base.html` shows any popped flash message as a toast
-- [ ] T024 Create `src/floorpro/app.py` with `create_app(data_dir: Path | None = None) -> FastAPI`:
+- [X] T024 Create `src/floorpro/app.py` with `create_app(data_dir: Path | None = None) -> FastAPI`:
   - **Lifespan**:
     1. `configure_logging()`
     2. `upgrade_to_head(db_path)`
@@ -206,7 +206,7 @@ story needs.
   - **Static files**: mounted from `resource_path("static")` at `/static`
   - **Exception handlers**: 404 and 500 render `errors/404.html` and `errors/500.html` (a partial when `is_partial`), log the traceback, and never show stack traces to the user
   - **Settings-reset notice**: shown once as an info toast, "Settings were missing and have been reset to the defaults (GBP, 20% VAT)."
-- [ ] T025 [P] Create `src/floorpro/static/css/input.css`:
+- [X] T025 [P] Create `src/floorpro/static/css/input.css`:
   - `@import "tailwindcss";` and `@source "../../templates";`
   - `@theme` design tokens:
     - primary brand scale
@@ -216,16 +216,16 @@ story needs.
     - `--font-sans` using a locally bundled variable font, e.g. Inter, OFL-licensed, placed in `src/floorpro/static/fonts/` with its licence file and loaded via `@font-face`
   - a CSS-only toast fade-out after 4 s (keyframes)
   - `<dialog>` and backdrop styles
-- [ ] T026 [P] Create `src/floorpro/static/js/app.js` (under 40 lines, no libraries):
+- [X] T026 [P] Create `src/floorpro/static/js/app.js` (under 40 lines, no libraries):
   - **(a) Modals**: on `htmx:afterSwap`/`htmx:load`, call `showModal()` on any `dialog` inside `#modal`. Elements with `[data-close-dialog]` close the dialog
   - **(b) Unsaved-changes guard**: track `input` events on forms with `data-guard-unsaved`. While a form is dirty, intercept clicks on links and `hx-boost` navigation outside it, and show the `#discard-dialog` in `base.html`. "Discard" continues the navigation and "Keep editing" cancels it. Submitting the form clears the dirty state
-- [ ] T027 Create `src/floorpro/templates/base.html`:
+- [X] T027 Create `src/floorpro/templates/base.html`:
   - `<html lang="en-GB">`, linking `/static/css/app.css`, `/static/vendor/htmx.min.js` and `/static/js/app.js`. No external URLs
   - `hx-boost="true"` on `<body>`
   - a sidebar nav (Dashboard `/`, Customers `/customers`, Settings `/settings`) showing the active state
   - `<main id="main">`, `<div id="modal">` and `<div id="toasts" aria-live="polite">`
   - `#discard-dialog` with the copy "You have unsaved changes. Discard them?"
-- [ ] T028 [P] Create the Jinja macro components in `src/floorpro/templates/components/`:
+- [X] T028 [P] Create the Jinja macro components in `src/floorpro/templates/components/`:
   - **`button.html`**: variants primary, secondary, danger, ghost. Sizes sm, md
   - **Form fields**:
     - `field.html`: label, input, hint, inline error in danger colour, warning in warning colour, `aria-describedby`
@@ -237,14 +237,14 @@ story needs.
   - **`empty_state.html`**: message plus an optional action
   - **`modal.html`**: a `<dialog>` with title, body and action slots
   - **`toast.html`**: an `hx-swap-oob="beforeend:#toasts"` fragment in success, error or info kind
-- [ ] T029 [P] Create the friendly error pages:
+- [X] T029 [P] Create the friendly error pages:
   - `src/floorpro/templates/errors/404.html`: "We couldn't find that page", with a link back to the dashboard
   - `src/floorpro/templates/errors/500.html`: "Something went wrong. Your data is safe. Please try again.", with no technical details
-- [ ] T030 Create `src/floorpro/routes/dashboard.py` and `src/floorpro/templates/dashboard.html`:
+- [X] T030 Create `src/floorpro/routes/dashboard.py` and `src/floorpro/templates/dashboard.html`:
   - **`GET /`**: welcome heading, a quick customer search form (`GET /customers?q=`), an "Add customer" button (`/customers/new`), and placeholder cards "Upcoming appointments" and "Outstanding invoices" using `empty_state` with "Coming soon"
   - **`GET /healthz`**: returns plain-text `ok`
   - register the router in `app.py`
-- [ ] T031 Create `src/floorpro/desktop.py` and `src/floorpro/__main__.py`:
+- [X] T031 Create `src/floorpro/desktop.py` and `src/floorpro/__main__.py`:
   - **`main()`** (argparse `--browser`), in order:
     1. find a free port by binding `("127.0.0.1", 0)`
     2. create `uvicorn.Server(uvicorn.Config(create_app(), host="127.0.0.1", port=port, log_config=None))`
@@ -253,7 +253,7 @@ story needs.
   - **Default (no `--browser`)**: `import webview` inside the function (the only module that imports it), set `webview.settings["ALLOW_DOWNLOADS"] = True`, then `webview.create_window("FloorPro", url, min_size=(1024, 700))` and `webview.start()`. Set `server.should_exit = True` on exit
   - **`--browser`**: `webbrowser.open(url)` and block until Ctrl+C
   - **`__main__.py`**: calls `main()`
-- [ ] T032 Create `tests/conftest.py`. **Fixtures:**
+- [X] T032 Create `tests/conftest.py`. **Fixtures:**
   - `data_dir`: a `tmp_path`, with `monkeypatch.setenv("FLOORPRO_DATA_DIR", ...)`
   - `app`: `create_app(data_dir)`
   - `client`: `with TestClient(app) as c` so the lifespan runs
@@ -262,7 +262,7 @@ story needs.
 
   **Helper:**
   - `make_customer(session, **overrides)`: inserts a valid domestic customer with the derived columns, then commits
-- [ ] T033 [P] Write `tests/integration/test_app_shell.py`:
+- [X] T033 [P] Write `tests/integration/test_app_shell.py`:
   - `GET /` returns 200 and contains the nav links and "Upcoming appointments"
   - `GET /healthz` returns `ok`
   - `GET /nope` returns 404 with "We couldn't find that page" and no "Traceback"
@@ -285,7 +285,7 @@ every search term with all its details intact (quickstart.md §B).
 
 ### Tests for User Story 1 ⚠️ Write first, confirm they fail
 
-- [ ] T034 [P] [US1] Write `tests/unit/test_validation_customer.py`.
+- [X] T034 [P] [US1] Write `tests/unit/test_validation_customer.py`.
 
   **`normalise_postcode`**:
   - `"sw1a1aa"` → `("SW1A 1AA", warning=False)`
@@ -301,12 +301,12 @@ every search term with all its details intact (quickstart.md §B).
     - `"(01234) 567-890"` → `"01234567890"`
   - `validate_phone("12345")` returns the error "Enter a phone number with at least 7 digits."
   - `validate_email("jane@example")` returns an error and `"Jane.Smith@Example.com"` is accepted, with no network calls
-- [ ] T035 [P] [US1] Write `tests/unit/test_customers_domain.py`:
+- [X] T035 [P] [US1] Write `tests/unit/test_customers_domain.py`:
   - `display_name(first="Jane", last="Smith", company=None) == "Jane Smith"`
   - with a company only, it returns the company
   - with a company and a person, it returns `"Acme Flooring (Jane Smith)"`
   - `sort_name` returns `"Smith, Jane"` for a person, and the company name when there's no last name
-- [ ] T036 [P] [US1] Write `tests/integration/test_customers_create.py`, covering spec scenarios 1.1, 1.2, 1.3 and 1.6 and contracts/routes.md `POST /customers`.
+- [X] T036 [P] [US1] Write `tests/integration/test_customers_create.py`, covering spec scenarios 1.1, 1.2, 1.3 and 1.6 and contracts/routes.md `POST /customers`.
 
   **Successful saves**:
   - a valid POST with the `htmx` headers returns 200 with the record page for `/customers/{id}`, an `HX-Push-Url: /customers/{id}` header, `C-00001`, `BS1 4DJ` and the toast "Customer C-00001 added"
@@ -322,7 +322,7 @@ every search term with all its details intact (quickstart.md §B).
   **Duplicates**:
   - a matching mobile number (with different spacing) or email (with different case) returns 200 with the duplicate panel linking to the existing customer, and creates no new row
   - resubmitting with `confirm_duplicate=1` creates the customer
-- [ ] T037 [P] [US1] Write `tests/integration/test_customers_search.py`, covering spec scenarios 1.4 and 1.5 and contracts/routes.md `GET /customers`.
+- [X] T037 [P] [US1] Write `tests/integration/test_customers_search.py`, covering spec scenarios 1.4 and 1.5 and contracts/routes.md `GET /customers`.
 
   **Matching**:
   - `q=07700900123` finds a customer stored as `07700 900123`
@@ -337,7 +337,7 @@ every search term with all its details intact (quickstart.md §B).
   - 60 matches return 50 rows and "Showing 50 of 60"
   - **Persistence** (SC-005): after creating 3 customers, a new `create_app` on the same `data_dir` lists all 3 with unchanged fields
 
-- [ ] T038 [P] [US1] Write `tests/integration/test_customers_new.py`, covering contracts/routes.md `GET /customers/new` (Principle III: every route has an integration test):
+- [X] T038 [P] [US1] Write `tests/integration/test_customers_new.py`, covering contracts/routes.md `GET /customers/new` (Principle III: every route has an integration test):
   - `GET /customers/new` returns 200 with an empty form whose type defaults to domestic
   - `prefill=07700 900123` fills `mobile_phone`
   - `prefill=jane@example.com` fills `email`
@@ -347,13 +347,13 @@ every search term with all its details intact (quickstart.md §B).
 
 ### Implementation for User Story 1
 
-- [ ] T039 [US1] Implement `normalise_postcode`, `postcode_compact`, `phone_digits`, `validate_phone` and `validate_email` in `src/floorpro/domain/validation.py`, so T034 passes:
+- [X] T039 [US1] Implement `normalise_postcode`, `postcode_compact`, `phone_digits`, `validate_phone` and `validate_email` in `src/floorpro/domain/validation.py`, so T034 passes:
   - UK postcode regex including `GIR 0AA`
   - `+44` → `0`
   - at least 7 digits for a phone number
   - `email_validator.validate_email(..., check_deliverability=False)`
-- [ ] T040 [US1] Implement `display_name` and `sort_name` in `src/floorpro/domain/customers.py` so T035 passes.
-- [ ] T041 [US1] Create `src/floorpro/schemas/customer_form.py` with a Pydantic v2 `CustomerForm`:
+- [X] T040 [US1] Implement `display_name` and `sort_name` in `src/floorpro/domain/customers.py` so T035 passes.
+- [X] T041 [US1] Create `src/floorpro/schemas/customer_form.py` with a Pydantic v2 `CustomerForm`:
   - **Field limits** (quoting data-model.md): `title` "up to 20 chars", `first_name`/`last_name` "up to 100 chars", `company_name` "up to 200 chars", `mobile_phone`/`other_phone` "up to 30 chars", `email`, `address_line1`/`address_line2` "up to 200 chars", `town`/`county` "up to 100 chars", `postcode`, `notes` "no length limit"
   - **Other fields**: `marketing_consent` (checkbox `"on"` → bool), and `customer_type` (default `"domestic"`, values `domestic|trade`) plus `show_vat_breakdown`, both accepted here with their rules added in US4
   - **Before validation**: every string is trimmed and an empty string becomes `None`
@@ -361,7 +361,7 @@ every search term with all its details intact (quickstart.md §B).
     - "Enter a first name, last name or company name." (key `name`)
     - "Add a phone number or email address." (key `contact`)
   - **`from_form(form_data) -> tuple[CustomerForm | None, dict[str, str]]`**: maps Pydantic errors to `{field: message}`
-- [ ] T042 [US1] Implement `src/floorpro/services/customer_service.py` (US1 part).
+- [X] T042 [US1] Implement `src/floorpro/services/customer_service.py` (US1 part).
 
   **`create(session, form) -> tuple[Customer, list[str]]`** (the list holds warnings):
   - sets `mobile_phone_digits`/`other_phone_digits` via `phone_digits`
@@ -378,24 +378,24 @@ every search term with all its details intact (quickstart.md §B).
     - if `q` matches `^c-?0*(\d+)$` (case-insensitive), it also matches `Customer.id == int(group)`
     - sort by name uses `sort_name` ordering (`COALESCE(last_name, company_name), first_name`)
   - `get(session, id) -> Customer | None`
-- [ ] T043 [US1] Create `src/floorpro/routes/customers.py` with these US1 routes, per contracts/routes.md:
+- [X] T043 [US1] Create `src/floorpro/routes/customers.py` with these US1 routes, per contracts/routes.md:
   - **`GET /customers`**: query `q`, `type`, `archived`, `sort`, `dir`. Returns the full page or `_results.html`
   - **`GET /customers/new`**: `prefill` heuristic: digits go to `mobile_phone`, text containing `@` goes to `email`, otherwise the text is split into first and last name
   - **`POST /customers`**: 422 form on errors, the duplicate panel unless `confirm_duplicate=1`. On success with the toast "Customer {ref} added" (plus any postcode warning): for HTMX, render the record page with `push_url=f"/customers/{id}"`; for a plain request, use `flash_redirect`
   - **`GET /customers/{id}`**: 404 when missing
   - register the router in `src/floorpro/app.py`
-- [ ] T044 [P] [US1] Create the list templates:
+- [X] T044 [P] [US1] Create the list templates:
   - **`src/floorpro/templates/customers/index.html`**: page heading, "Add customer" button, a search `<input type="search" name="q">` with `hx-get="/customers"`, `hx-trigger="input changed delay:250ms, search"`, `hx-target="#results"` and `hx-push-url="true"`, a "Show archived" toggle and sortable column headers
   - **`src/floorpro/templates/customers/_results.html`**: rows with reference, display name, phone, postcode and email linking to the record, a "Showing X of N" line, and the `empty_state` with "Add '{q}' as a new customer"
-- [ ] T045 [P] [US1] Create the form templates:
+- [X] T045 [P] [US1] Create the form templates:
   - **`src/floorpro/templates/customers/form.html`** and **`src/floorpro/templates/customers/_form.html`**: grouped sections (Name, Contact, Address, Notes and preferences) built from the `field`/`checkbox` macros, with `data-guard-unsaved` on the form. Inline errors and the postcode warning are shown, and entered values are kept on 422
   - **`src/floorpro/templates/customers/_duplicates.html`**: a warning panel listing the matches (reference, name, matching phone/email, an "Open" link) and a "Save anyway" button that resubmits the form with `confirm_duplicate=1`
-- [ ] T046 [P] [US1] Create `src/floorpro/templates/customers/detail.html`:
+- [X] T046 [P] [US1] Create `src/floorpro/templates/customers/detail.html`:
   - header with the display name and reference
   - contact, address and notes cards
   - "Added" and "Last updated" times via `local_datetime`
   - a "Jobs, orders, appointments and invoices" card using `empty_state` with "These will appear here once those features are available." (FR-022)
-- [ ] T047 [US1] Write `tests/integration/test_customers_perf.py`, marked `@pytest.mark.slow`:
+- [X] T047 [US1] Write `tests/integration/test_customers_perf.py`, marked `@pytest.mark.slow`:
   - bulk-insert 10,000 customers with varied names, phones and postcodes (Core `insert` with the derived columns precomputed)
   - for 5 different query types, assert the median elapsed time of `GET /customers?q=…` with the `htmx` headers is under 0.3 s (SC-002, constitution under 300 ms)
 

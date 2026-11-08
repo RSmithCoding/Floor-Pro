@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button %}
+{% from "components/empty_state.html" import empty_state %}
+{% block title %}Dashboard · FloorPro{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-ink-900">Welcome to FloorPro</h1>
+    <p class="mt-1 text-sm text-ink-600">Find a customer, or start something new.</p>
+  </div>
+  {{ button("Add customer", href="/customers/new") }}
+</div>
+
+<form action="/customers" method="get" role="search" class="mt-6">
+  <label for="dashboard-search" class="sr-only">Search customers</label>
+  <div class="relative">
+    <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-ink-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.45 4.39l3.08 3.08a.75.75 0 1 1-1.06 1.06l-3.08-3.08A7 7 0 0 1 2 9Z" clip-rule="evenodd"/></svg>
+    <input id="dashboard-search" type="search" name="q" placeholder="Search customers by name, phone, postcode, email or reference" class="block w-full rounded-card border-0 bg-white py-3 pl-10 pr-4 text-sm text-ink-900 shadow-card ring-1 ring-inset ring-ink-200 placeholder:text-ink-500 focus:ring-2 focus:ring-brand-600">
+  </div>
+</form>
+
+<div class="mt-8 grid gap-6 lg:grid-cols-2">
+  {% call card("Upcoming appointments", "Estimates and fittings booked in the planner") %}
+    {{ empty_state("Coming soon", "Your upcoming estimates and fittings will appear here once the planner is available.") }}
+  {% endcall %}
+  {% call card("Outstanding invoices", "Invoices waiting to be paid") %}
+    {{ empty_state("Coming soon", "Unpaid invoices will appear here once invoicing is available.") }}
+  {% endcall %}
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% from "components/_attrs.html" import attrs %}
+{#- When disabled and checked, a hidden input keeps the value submitted. -#}
+{% macro checkbox(name, label, checked=False, disabled=False, hint=None, value="on") -%}
+<div class="flex gap-3">
+  <div class="flex h-6 items-center">
+    <input id="{{ name }}" name="{{ name }}" type="checkbox" value="{{ value }}" class="size-4 rounded border-ink-300 text-brand-600 accent-brand-600 focus:ring-brand-600"{% if checked %} checked{% endif %}{% if disabled %} disabled{% endif %}{% if hint %} aria-describedby="{{ name }}-hint"{% endif %}{{ attrs(kwargs) }}>
+    {%- if disabled and checked %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endif %}
+  </div>
+  <div class="text-sm leading-6">
+    <label for="{{ name }}" class="font-medium text-ink-900">{{ label }}</label>
+    {%- if hint %}<p id="{{ name }}-hint" class="text-ink-500">{{ hint }}</p>{% endif %}
+  </div>
+</div>
+{%- endmacro %}

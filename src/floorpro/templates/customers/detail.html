@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "components/card.html" import card %}
+{% from "components/badge.html" import badge %}
+{% from "components/empty_state.html" import empty_state %}
+{% set c = customer %}
+{% block title %}{{ c.display_name }} · FloorPro{% endblock %}
+{% block content %}
+<nav class="text-sm text-ink-500" aria-label="Breadcrumb">
+  <a href="/customers" class="hover:text-ink-900">Customers</a> <span aria-hidden="true">/</span>
+</nav>
+<div class="mt-2 flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <div class="flex flex-wrap items-center gap-2">
+      <h1 class="text-2xl font-semibold tracking-tight text-ink-900">{{ c.display_name }}</h1>
+      {{ badge(c.customer_type) }}
+      {%- if c.is_archived %}{{ badge("archived", "Archived " ~ (c.archived_at|local_date)) }}{% endif %}
+    </div>
+    <p class="mt-1 font-mono text-sm text-ink-600">{{ c.reference }}</p>
+  </div>
+  {% block actions %}{% endblock %}
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    {% call card("Contact") %}
+      <dl class="grid gap-4 text-sm sm:grid-cols-2">
+        {%- for label, value in [("Name", (c.title ~ " " if c.title else "") ~ ((c.first_name or "") ~ " " ~ (c.last_name or ""))|trim), ("Company or trading name", c.company_name), ("Mobile phone", c.mobile_phone), ("Other phone", c.other_phone), ("Email", c.email)] %}
+        <div>
+          <dt class="text-ink-500">{{ label }}</dt>
+          <dd class="mt-0.5 font-medium text-ink-900">{{ value or "—" }}</dd>
+        </div>
+        {%- endfor %}
+      </dl>
+    {% endcall %}
+    {% call card("Address") %}
+      {%- set lines = [c.address_line1, c.address_line2, c.town, c.county, c.postcode]|select|list %}
+      {%- if lines %}
+      <address class="text-sm not-italic leading-6 text-ink-900">{% for line in lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}</address>
+      {%- else %}<p class="text-sm text-ink-500">No address recorded.</p>{% endif %}
+    {% endcall %}
+    {% call card("Notes") %}
+      {%- if c.notes %}<p class="whitespace-pre-line break-words text-sm text-ink-900">{{ c.notes }}</p>
+      {%- else %}<p class="text-sm text-ink-500">No notes.</p>{% endif %}
+    {% endcall %}
+    {% call card("Jobs, orders, appointments and invoices", padded=False) %}
+      {{ empty_state("Nothing here yet", "These will appear here once those features are available.") }}
+    {% endcall %}
+  </div>
+
+  <div class="space-y-6">
+    {% call card("Preferences") %}
+      <dl class="space-y-3 text-sm">
+        <div><dt class="text-ink-500">VAT on quotes and invoices</dt>
+          <dd class="mt-0.5 font-medium text-ink-900">{{ "Shown as a breakdown" if c.show_vat_breakdown else "Included in the total" }}</dd></div>
+        <div><dt class="text-ink-500">Marketing messages</dt>
+          <dd class="mt-0.5 font-medium text-ink-900">{{ "Agreed" if c.marketing_consent else "Not agreed" }}</dd></div>
+      </dl>
+    {% endcall %}
+    {% call card("Record") %}
+      <dl class="space-y-3 text-sm">
+        <div><dt class="text-ink-500">Added</dt><dd class="mt-0.5 text-ink-900">{{ c.created_at|local_datetime }}</dd></div>
+        <div><dt class="text-ink-500">Last updated</dt><dd class="mt-0.5 text-ink-900">{{ c.updated_at|local_datetime }}</dd></div>
+      </dl>
+    {% endcall %}
+  </div>
+</div>
+{% endblock %}

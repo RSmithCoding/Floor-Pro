@@ -1,0 +1,9 @@
+{% set _badges = {
+  "domestic": ("Domestic", "bg-ink-100 text-ink-700"),
+  "trade": ("Trade", "bg-oak-100 text-oak-800"),
+  "archived": ("Archived", "bg-warning-50 text-warning-800"),
+} %}
+{% macro badge(kind, label=None) -%}
+{%- set text, cls = _badges.get(kind, (kind|title, "bg-ink-100 text-ink-700")) -%}
+<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ cls }}">{{ label or text }}</span>
+{%- endmacro %}

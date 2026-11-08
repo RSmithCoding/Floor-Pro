@@ -1,0 +1,33 @@
+{% from "components/_attrs.html" import attrs %}
+{#- options: list of (value, label) pairs. -#}
+{% macro select(name, label, options, selected=None, error=None, hint=None, wrapper_class="") -%}
+<div class="{{ wrapper_class }}">
+  <label for="{{ name }}" class="block text-sm font-medium text-ink-700">{{ label }}</label>
+  <select id="{{ name }}" name="{{ name }}" class="mt-1.5 block w-full rounded-control border-0 py-2 pl-3 pr-8 text-sm text-ink-900 shadow-sm ring-1 ring-inset {{ 'ring-danger-600' if error else 'ring-ink-300' }} focus:ring-2 focus:ring-brand-600"{% if hint or error %} aria-describedby="{% if hint %}{{ name }}-hint {% endif %}{% if error %}{{ name }}-error{% endif %}"{% endif %}{{ attrs(kwargs) }}>
+    {%- for value, text in options %}
+    <option value="{{ value }}"{% if value == selected %} selected{% endif %}>{{ text }}</option>
+    {%- endfor %}
+  </select>
+  {%- if hint %}<p id="{{ name }}-hint" class="mt-1.5 text-xs text-ink-500">{{ hint }}</p>{% endif %}
+  {%- if error %}<p id="{{ name }}-error" class="mt-1.5 text-sm text-danger-700">{{ error }}</p>{% endif %}
+</div>
+{%- endmacro %}
+
+{#- Segmented radio group. options: list of (value, label, description-or-None). -#}
+{% macro radio_group(name, legend, options, selected=None, error=None, wrapper_class="") -%}
+<fieldset class="{{ wrapper_class }}">
+  <legend class="block text-sm font-medium text-ink-700">{{ legend }}</legend>
+  <div class="mt-1.5 inline-flex rounded-control bg-ink-100 p-1" role="presentation">
+    {%- for value, text, description in options %}
+    <label class="relative cursor-pointer">
+      <input type="radio" name="{{ name }}" value="{{ value }}" class="peer sr-only"{% if value == selected %} checked{% endif %}{{ attrs(kwargs) }}>
+      <span class="block rounded-md px-4 py-1.5 text-sm font-medium text-ink-600 peer-checked:bg-white peer-checked:text-brand-700 peer-checked:shadow-sm peer-focus-visible:outline-2 peer-focus-visible:outline-brand-600">{{ text }}</span>
+    </label>
+    {%- endfor %}
+  </div>
+  {%- for value, text, description in options if description and value == selected %}
+  <p class="mt-1.5 text-xs text-ink-500">{{ description }}</p>
+  {%- endfor %}
+  {%- if error %}<p class="mt-1.5 text-sm text-danger-700">{{ error }}</p>{% endif %}
+</fieldset>
+{%- endmacro %}

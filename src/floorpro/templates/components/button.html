@@ -1,0 +1,16 @@
+{% from "components/_attrs.html" import attrs %}
+{% set _variants = {
+  "primary": "bg-brand-600 text-white hover:bg-brand-700 shadow-sm",
+  "secondary": "bg-white text-ink-700 ring-1 ring-inset ring-ink-300 hover:bg-ink-50",
+  "danger": "bg-danger-600 text-white hover:bg-danger-700 shadow-sm",
+  "ghost": "text-ink-700 hover:bg-ink-100",
+} %}
+{% set _sizes = {"sm": "px-3 py-1.5 text-sm", "md": "px-4 py-2 text-sm"} %}
+{% macro button(label, variant="primary", size="md", type="button", href=None, icon=None) -%}
+{%- set cls = "inline-flex items-center justify-center gap-2 rounded-control font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50 " ~ _variants[variant] ~ " " ~ _sizes[size] -%}
+{%- if href -%}
+<a href="{{ href }}" class="{{ cls }}"{{ attrs(kwargs) }}>{% if icon %}{{ icon|safe }}{% endif %}{{ label }}</a>
+{%- else -%}
+<button type="{{ type }}" class="{{ cls }}"{{ attrs(kwargs) }}>{% if icon %}{{ icon|safe }}{% endif %}{{ label }}</button>
+{%- endif -%}
+{%- endmacro %}

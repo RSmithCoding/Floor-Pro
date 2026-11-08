@@ -1,0 +1,13 @@
+{#- A native <dialog>, opened by static/js/app.js when swapped into #modal. -#}
+{% macro modal(title, id="dialog") -%}
+<dialog class="modal" id="{{ id }}" aria-labelledby="{{ id }}-title">
+  <div class="px-6 pt-5">
+    <h2 id="{{ id }}-title" class="text-lg font-semibold text-ink-900">{{ title }}</h2>
+  </div>
+  <div class="px-6 pb-5 pt-3 text-sm text-ink-700">{{ caller() }}</div>
+</dialog>
+{%- endmacro %}
+
+{% macro modal_actions() -%}
+<div class="-mx-6 -mb-5 mt-5 flex justify-end gap-3 rounded-b-card bg-ink-50 px-6 py-3">{{ caller() }}</div>
+{%- endmacro %}

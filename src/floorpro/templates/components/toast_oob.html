@@ -1,0 +1,2 @@
+{% from "components/toast.html" import toast %}
+<div hx-swap-oob="beforeend:#toasts">{% for kind, message in toasts %}{{ toast(kind, message) }}{% endfor %}</div>

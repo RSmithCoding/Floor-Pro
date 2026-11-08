@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit customer" if customer else "Add customer" }} · FloorPro{% endblock %}
+{% block content %}
+<nav class="text-sm text-ink-500" aria-label="Breadcrumb">
+  <a href="/customers" class="hover:text-ink-900">Customers</a> <span aria-hidden="true">/</span>
+  {% if customer %}<a href="/customers/{{ customer.id }}" class="hover:text-ink-900">{{ customer.reference }}</a> <span aria-hidden="true">/</span>{% endif %}
+</nav>
+<h1 class="mt-2 text-2xl font-semibold tracking-tight text-ink-900">{{ "Edit customer" if customer else "Add customer" }}</h1>
+<div class="mt-6">{% include "customers/_form.html" %}</div>
+{% endblock %}

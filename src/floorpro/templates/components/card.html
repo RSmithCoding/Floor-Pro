@@ -1,0 +1,11 @@
+{% macro card(title=None, subtitle=None, padded=True, cls="") -%}
+<section class="rounded-card bg-white shadow-card ring-1 ring-ink-200/70 {{ cls }}">
+  {%- if title %}
+  <header class="border-b border-ink-100 px-5 py-4">
+    <h2 class="text-base font-semibold text-ink-900">{{ title }}</h2>
+    {%- if subtitle %}<p class="mt-0.5 text-sm text-ink-500">{{ subtitle }}</p>{% endif %}
+  </header>
+  {%- endif %}
+  <div class="{{ 'p-5' if padded else '' }}">{{ caller() }}</div>
+</section>
+{%- endmacro %}

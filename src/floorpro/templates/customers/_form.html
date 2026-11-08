@@ -1,0 +1,63 @@
+{% from "components/field.html" import field %}
+{% from "components/select.html" import radio_group %}
+{% from "components/checkbox.html" import checkbox %}
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button %}
+{%- set v = values %}
+{%- set e = errors %}
+<form id="customer-form" method="post" action="{{ '/customers/' ~ customer.id if customer else '/customers' }}" data-guard-unsaved class="space-y-6" novalidate>
+  {%- if duplicates %}{% include "customers/_duplicates.html" %}{% endif %}
+  {%- if e %}
+  <div class="rounded-card bg-danger-50 px-4 py-3 text-sm text-danger-700 ring-1 ring-danger-600/30" role="alert">
+    Please fix the highlighted fields below.
+  </div>
+  {%- endif %}
+
+  {% call card("Customer type") %}
+    {{ radio_group("customer_type", "Type", [
+        ("domestic", "Domestic", "A member of the public."),
+        ("trade", "Trade", "Fitters, builders, landlords and other businesses."),
+      ], selected=v.customer_type) }}
+  {% endcall %}
+
+  {% call card("Name", "Enter a person's name, a company name, or both.") %}
+    {%- if e.name %}<p id="name-error" class="mb-4 text-sm text-danger-700" role="alert">{{ e.name }}</p>{% endif %}
+    <div class="grid gap-4 sm:grid-cols-6">
+      {{ field("title", "Title", v.title, error=e.title, optional=True, wrapper_class="sm:col-span-1", maxlength=20, autocomplete="honorific-prefix") }}
+      {{ field("first_name", "First name", v.first_name, error=e.first_name, wrapper_class="sm:col-span-2", maxlength=100, autocomplete="given-name", aria_describedby="name-error" if e.name else none) }}
+      {{ field("last_name", "Last name", v.last_name, error=e.last_name, wrapper_class="sm:col-span-3", maxlength=100, autocomplete="family-name") }}
+      {{ field("company_name", "Company or trading name", v.company_name, error=e.company_name, optional=True, wrapper_class="sm:col-span-6", maxlength=200, autocomplete="organization") }}
+    </div>
+  {% endcall %}
+
+  {% call card("Contact", "At least one phone number or an email address.") %}
+    {%- if e.contact %}<p class="mb-4 text-sm text-danger-700" role="alert">{{ e.contact }}</p>{% endif %}
+    <div class="grid gap-4 sm:grid-cols-2">
+      {{ field("mobile_phone", "Mobile phone", v.mobile_phone, type="tel", error=e.mobile_phone, maxlength=30, autocomplete="tel") }}
+      {{ field("other_phone", "Other phone", v.other_phone, type="tel", error=e.other_phone, maxlength=30) }}
+      {{ field("email", "Email", v.email, type="email", error=e.email, wrapper_class="sm:col-span-2", autocomplete="email") }}
+    </div>
+  {% endcall %}
+
+  {% call card("Address") %}
+    <div class="grid gap-4 sm:grid-cols-6">
+      {{ field("address_line1", "Address line 1", v.address_line1, error=e.address_line1, wrapper_class="sm:col-span-6", maxlength=200, autocomplete="address-line1") }}
+      {{ field("address_line2", "Address line 2", v.address_line2, error=e.address_line2, optional=True, wrapper_class="sm:col-span-6", maxlength=200, autocomplete="address-line2") }}
+      {{ field("town", "Town or city", v.town, error=e.town, wrapper_class="sm:col-span-3", maxlength=100, autocomplete="address-level2") }}
+      {{ field("county", "County", v.county, error=e.county, optional=True, wrapper_class="sm:col-span-2", maxlength=100) }}
+      {{ field("postcode", "Postcode", v.postcode, error=e.postcode, wrapper_class="sm:col-span-1", autocomplete="postal-code") }}
+    </div>
+  {% endcall %}
+
+  {% call card("Notes and preferences") %}
+    <div class="space-y-4">
+      {{ field("notes", "Notes", v.notes, type="textarea", rows=4, optional=True, hint="Anything useful for the shop: access, preferences, parking, pets…") }}
+      {{ checkbox("marketing_consent", "Happy to receive marketing messages", checked=v.marketing_consent, hint="Only tick this if the customer has agreed.") }}
+    </div>
+  {% endcall %}
+
+  <div class="flex items-center justify-end gap-3">
+    {{ button("Cancel", variant="ghost", href=("/customers/" ~ customer.id) if customer else "/customers") }}
+    {{ button("Save customer", type="submit") }}
+  </div>
+</form>

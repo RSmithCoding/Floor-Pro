@@ -1,0 +1,15 @@
+{#- Sortable column header. params: dict of current query params (q, type, archived). -#}
+{% macro sort_header(label, key, sort, direction, url, params, cls="") -%}
+{%- set active = sort == key -%}
+{%- set next_dir = "desc" if active and direction == "asc" else "asc" -%}
+{%- set query = dict(params, sort=key, dir=next_dir) -%}
+<th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-500 {{ cls }}"{% if active %} aria-sort="{{ 'ascending' if direction == 'asc' else 'descending' }}"{% endif %}>
+  <a href="{{ url }}?{{ query|urlencode }}" class="inline-flex items-center gap-1 hover:text-ink-900">
+    {{ label }}{% if active %}<span aria-hidden="true">{{ "↑" if direction == "asc" else "↓" }}</span>{% endif %}
+  </a>
+</th>
+{%- endmacro %}
+
+{% macro plain_header(label, cls="") -%}
+<th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-500 {{ cls }}">{{ label }}</th>
+{%- endmacro %}

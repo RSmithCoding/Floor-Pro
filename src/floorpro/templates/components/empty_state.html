@@ -1,0 +1,11 @@
+{% from "components/button.html" import button %}
+{% macro empty_state(title, message=None, action_label=None, action_href=None) -%}
+<div class="flex flex-col items-center justify-center px-6 py-10 text-center">
+  <div class="flex size-10 items-center justify-center rounded-full bg-ink-100 text-ink-500" aria-hidden="true">
+    <svg class="size-5" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2H3V4Zm0 4h14v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8Zm4 2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H7Z"/></svg>
+  </div>
+  <p class="mt-3 text-sm font-semibold text-ink-900">{{ title }}</p>
+  {%- if message %}<p class="mt-1 max-w-sm text-sm text-ink-500">{{ message }}</p>{% endif %}
+  {%- if action_label %}<div class="mt-4">{{ button(action_label, href=action_href, size="sm") }}</div>{% endif %}
+</div>
+{%- endmacro %}
