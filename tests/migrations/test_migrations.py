@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -320,7 +321,8 @@ def test_setting_the_password_protects_legacy_copies(data_dir, db_path):
     folder = data_dir / "backups"
     folder.mkdir(exist_ok=True)
     legacy = folder / "floorpro-20261101T093000123456Z-pre-0001.db"
-    with sqlite3.connect(db_path) as source, sqlite3.connect(legacy) as dest:
+    # closing(), not the bare context manager: Windows can't delete a file that's still open
+    with closing(sqlite3.connect(db_path)) as source, closing(sqlite3.connect(legacy)) as dest:
         source.backup(dest)
 
     backup_service.set_password("correct horse battery")
