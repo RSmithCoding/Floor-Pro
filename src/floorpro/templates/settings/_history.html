@@ -1,0 +1,26 @@
+{%- if history.rows %}
+<div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-ink-100 text-sm">
+    <thead class="bg-ink-50">
+      <tr>
+        <th scope="col" class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500">When</th>
+        <th scope="col" class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500">Setting</th>
+        <th scope="col" class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500">From</th>
+        <th scope="col" class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500">To</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-ink-100">
+      {%- for row in history.rows %}
+      <tr>
+        <td class="whitespace-nowrap px-4 py-2.5 text-ink-600">{{ row.changed_at|local_datetime }}</td>
+        <td class="px-4 py-2.5 font-medium text-ink-900">{{ labels[row.field] }}</td>
+        <td class="px-4 py-2.5 text-ink-600">{{ display_value(row.field, row.old_value) }}</td>
+        <td class="px-4 py-2.5 text-ink-900">{{ display_value(row.field, row.new_value) }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{%- else %}
+<p class="px-5 py-6 text-sm text-ink-500">No changes yet. FloorPro started with GBP and 20% VAT.</p>
+{%- endif %}

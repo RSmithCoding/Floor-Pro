@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import re
+from decimal import Decimal
 
 from email_validator import EmailNotValidError
 from email_validator import validate_email as _validate_email
+
+from floorpro.domain.money import PERCENT_PLACES
 
 _POSTCODE_RE = re.compile(r"^(GIR 0AA|[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2})$")
 _PHONE_CHARS_RE = re.compile(r"^[\d\s()+\-.]+$")
@@ -66,3 +69,30 @@ def validate_email(value: str) -> str | None:
     except EmailNotValidError:
         return EMAIL_ERROR
     return None
+
+
+# --- VAT -----------------------------------------------------------------------------------
+
+VAT_RATE_ERROR = "Enter a VAT rate between 0 and 100, with up to two decimal places."
+VAT_NUMBER_ERROR = "Enter a UK VAT number, for example GB123456789."
+_VAT_RATE_RE = re.compile(r"^\d{1,3}(\.\d{1,2})?$")
+_VAT_NUMBER_RE = re.compile(r"^GB(\d{9}|\d{12}|GD\d{3}|HA\d{3})$")
+
+
+def validate_vat_rate(value: str) -> Decimal:
+    """``"17.5"`` -> ``Decimal("17.50")``. Raises ``ValueError(VAT_RATE_ERROR)``."""
+    text = value.strip()
+    if not _VAT_RATE_RE.match(text):
+        raise ValueError(VAT_RATE_ERROR)
+    rate = Decimal(text)
+    if not Decimal(0) <= rate <= Decimal(100):
+        raise ValueError(VAT_RATE_ERROR)
+    return rate.quantize(PERCENT_PLACES)
+
+
+def normalise_vat_number(value: str) -> str:
+    """``"gb 123 4567 89"`` -> ``"GB123456789"``. Raises ``ValueError(VAT_NUMBER_ERROR)``."""
+    compact = re.sub(r"\s+", "", value).upper()
+    if not _VAT_NUMBER_RE.match(compact):
+        raise ValueError(VAT_NUMBER_ERROR)
+    return compact

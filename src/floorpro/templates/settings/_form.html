@@ -1,0 +1,55 @@
+{% from "components/select.html" import select %}
+{% from "components/checkbox.html" import checkbox %}
+{% from "components/card.html" import card %}
+{% from "components/button.html" import button %}
+{%- set v = values %}
+{%- set e = errors %}
+<form id="settings-form" method="post" action="/settings"
+      hx-post="/settings" hx-target="#modal" hx-swap="innerHTML" class="space-y-6" novalidate>
+  {%- if e %}
+  <div class="rounded-card bg-danger-50 px-4 py-3 text-sm text-danger-700 ring-1 ring-danger-600/30" role="alert">
+    Please fix the highlighted fields below.
+  </div>
+  {%- endif %}
+
+  {% call card("Currency", "Used to show every amount in FloorPro. Amounts are never converted.") %}
+    {%- set options = [] %}
+    {%- for c in currencies %}{% set _ = options.append((c.code, c.symbol ~ "  " ~ c.name ~ " (" ~ c.code ~ ")")) %}{% endfor %}
+    {{ select("currency_code", "Currency", options, selected=v.currency_code, error=e.currency_code, wrapper_class="max-w-sm") }}
+  {% endcall %}
+
+  {% call card("VAT") %}
+    <div class="space-y-5">
+      {{ checkbox("vat_registered", "VAT registered", checked=v.vat_registered,
+                  hint="Untick if the business isn't registered for VAT. No VAT will be added to new quotes and invoices.",
+                  hx_get="/settings/form/vat-fields", hx_trigger="change", hx_target="#vat-fields",
+                  hx_swap="outerHTML", hx_include="closest form") }}
+      {% include "settings/_vat_fields.html" %}
+    </div>
+  {% endcall %}
+
+  {% call card("Price entry", "How prices typed into FloorPro are treated.") %}
+    <fieldset>
+      <legend class="sr-only">Price entry mode</legend>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {%- for value, label, description in [
+            ("inc_vat", "Prices include VAT", "What you type is the price the customer pays. VAT is worked out from it."),
+            ("ex_vat", "Prices exclude VAT", "What you type is the price before VAT. VAT is added on top."),
+          ] %}
+        <label class="relative flex cursor-pointer rounded-control bg-white p-4 ring-1 ring-inset ring-ink-300 has-[:checked]:bg-brand-50 has-[:checked]:ring-2 has-[:checked]:ring-brand-600">
+          <input type="radio" name="price_entry_mode" value="{{ value }}" class="mt-0.5 size-4 accent-brand-600"{% if v.price_entry_mode == value %} checked{% endif %}>
+          <span class="ml-3 text-sm">
+            <span class="block font-medium text-ink-900">{{ label }}</span>
+            <span class="mt-0.5 block text-ink-600">{{ description }}</span>
+          </span>
+        </label>
+        {%- endfor %}
+      </div>
+      {%- if e.price_entry_mode %}<p class="mt-1.5 text-sm text-danger-700">{{ e.price_entry_mode }}</p>{% endif %}
+    </fieldset>
+  {% endcall %}
+
+  <div class="flex justify-end">
+    {{ button("Save settings", type="submit") }}
+  </div>
+</form>

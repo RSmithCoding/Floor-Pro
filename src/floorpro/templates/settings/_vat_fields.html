@@ -1,0 +1,23 @@
+{% from "components/field.html" import field %}
+{%- set v = values %}
+{%- set e = errors %}
+{%- set off = not v.vat_registered %}
+<div id="vat-fields" class="grid gap-4 sm:grid-cols-2">
+  <div>
+    <label for="vat_rate" class="block text-sm font-medium {{ 'text-ink-500' if off else 'text-ink-700' }}">VAT rate</label>
+    <div class="relative mt-1.5">
+      <input id="vat_rate" name="vat_rate" type="text" inputmode="decimal" value="{{ v.vat_rate }}"
+             class="block w-full rounded-control border-0 py-2 pl-3 pr-9 text-sm text-ink-900 shadow-sm ring-1 ring-inset {{ 'ring-danger-600' if e.vat_rate else 'ring-ink-300' }} focus:ring-2 focus:ring-brand-600 disabled:bg-ink-100 disabled:text-ink-500"
+             {%- if e.vat_rate %} aria-invalid="true" aria-describedby="vat_rate-error"{% elif off %} aria-describedby="vat-na"{% endif %}{% if off %} disabled{% endif %}>
+      <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-500" aria-hidden="true">%</span>
+    </div>
+    {%- if e.vat_rate %}<p id="vat_rate-error" class="mt-1.5 text-sm text-danger-700">{{ e.vat_rate }}</p>{% endif %}
+  </div>
+  {{ field("vat_number", "VAT registration number", v.vat_number, error=e.vat_number, optional=True,
+           hint=None if off else "For example GB123456789.", disabled=off, autocomplete="off") }}
+  {%- if off %}
+  <p id="vat-na" class="text-sm text-ink-500 sm:col-span-2">Not applicable — business isn't VAT registered</p>
+  <input type="hidden" name="vat_rate" value="{{ v.vat_rate }}">
+  <input type="hidden" name="vat_number" value="{{ v.vat_number }}">
+  {%- endif %}
+</div>

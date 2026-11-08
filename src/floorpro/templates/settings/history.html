@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "components/card.html" import card %}
+{% block title %}Change history · FloorPro{% endblock %}
+{% block content %}
+<nav class="text-sm text-ink-500" aria-label="Breadcrumb">
+  <a href="/settings" class="hover:text-ink-900">Settings</a> <span aria-hidden="true">/</span>
+</nav>
+<h1 class="mt-2 text-2xl font-semibold tracking-tight text-ink-900">Change history</h1>
+<p class="mt-1 text-sm text-ink-600">Every change to the business settings, newest first.</p>
+<div class="mt-6">
+  {% call card(padded=False) %}
+    {% include "settings/_history.html" %}
+    {%- if history.pages > 1 %}
+    <nav class="flex items-center justify-between border-t border-ink-100 px-5 py-3 text-sm" aria-label="Pagination">
+      {%- if history.page > 1 %}<a href="/settings/history?page={{ history.page - 1 }}" class="font-medium text-brand-700">← Newer</a>{% else %}<span></span>{% endif %}
+      <span class="text-ink-500">Page {{ history.page }} of {{ history.pages }}</span>
+      {%- if history.page < history.pages %}<a href="/settings/history?page={{ history.page + 1 }}" class="font-medium text-brand-700">Older →</a>{% else %}<span></span>{% endif %}
+    </nav>
+    {%- endif %}
+  {% endcall %}
+</div>
+{% endblock %}

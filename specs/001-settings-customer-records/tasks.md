@@ -413,7 +413,7 @@ kept and history listed (quickstart.md §A).
 
 ### Tests for User Story 2 ⚠️ Write first, confirm they fail
 
-- [ ] T048 [P] [US2] Write `tests/unit/test_validation_vat.py`.
+- [X] T048 [P] [US2] Write `tests/unit/test_validation_vat.py`.
 
   **`validate_vat_rate`**:
   - accepts `"20"` → `Decimal("20.00")`, `"17.5"` → `Decimal("17.50")`, and `"0"` and `"100"`
@@ -423,12 +423,12 @@ kept and history listed (quickstart.md §A).
   - `"gb 123 4567 89"` → `"GB123456789"`
   - accepts `"GB123456789012"`, `"GBGD001"` and `"GBHA599"`
   - rejects `"GB12"` and `"123456789"`, each with "Enter a UK VAT number, for example GB123456789."
-- [ ] T049 [P] [US2] Write `tests/unit/test_settings_at.py` for the pure function `settings_at(defaults, changes, when)` in `floorpro.domain.settings_history`:
+- [X] T049 [P] [US2] Write `tests/unit/test_settings_at.py` for the pure function `settings_at(defaults, changes, when)` in `floorpro.domain.settings_history`:
   - with no changes, it returns the defaults
   - changes are applied in `changed_at` order up to and including `when`
   - later changes are ignored
   - several fields in one change set are applied together
-- [ ] T050 [P] [US2] Write `tests/integration/test_settings.py`, covering spec scenarios 2.1–2.7 and contracts/routes.md.
+- [X] T050 [P] [US2] Write `tests/integration/test_settings.py`, covering spec scenarios 2.1–2.7 and contracts/routes.md.
 
   **Defaults**:
   - `GET /settings` shows GBP, VAT registered, 20 and "Prices include VAT"
@@ -456,34 +456,34 @@ kept and history listed (quickstart.md §A).
 
 ### Implementation for User Story 2
 
-- [ ] T051 [US2] Implement `validate_vat_rate` and `normalise_vat_number` in `src/floorpro/domain/validation.py` so T048 passes:
+- [X] T051 [US2] Implement `validate_vat_rate` and `normalise_vat_number` in `src/floorpro/domain/validation.py` so T048 passes:
   - **VAT rate**: uses `percent_to_bp` rules, range 0–100, at most 2 dp
   - **VAT number**: regex `^GB(\d{9}|\d{12}|GD\d{3}|HA\d{3})$` after removing whitespace and upper-casing
-- [ ] T052 [US2] Implement `src/floorpro/domain/settings_history.py` so T049 passes:
+- [X] T052 [US2] Implement `src/floorpro/domain/settings_history.py` so T049 passes:
   - a `SettingsSnapshot` dataclass
   - `settings_at(defaults, changes, when)`
   - `canonical(field, value) -> str`: `"20.00"` for rates, `"true"`/`"false"`, the code or mode string, or `None`
-- [ ] T053 [US2] Create `src/floorpro/schemas/settings_form.py` with a Pydantic `SettingsForm`:
+- [X] T053 [US2] Create `src/floorpro/schemas/settings_form.py` with a Pydantic `SettingsForm`:
   - **`currency_code`**: must be in `SUPPORTED_CURRENCIES`, otherwise "Choose a currency from the list."
   - **`vat_registered`**: checkbox
   - **`vat_rate`**: required and validated only when registered
   - **`vat_number`**: optional, normalised and validated when present and registered
   - **`price_entry_mode`**: `inc_vat|ex_vat`
   - **`from_form`**: returns `(form, errors)`
-- [ ] T054 [US2] Extend `src/floorpro/services/settings_service.py`:
+- [X] T054 [US2] Extend `src/floorpro/services/settings_service.py`:
   - **`diff(current, form)`**: returns a list of `(field, old_canonical, new_canonical)`
   - **`make_token(form, current)`**: HMAC-SHA256 with `paths.secret_key()` over the staged canonical values plus `current.updated_at.isoformat()`. Add a matching `verify_token`
   - **`apply(session, form)`**: in one transaction, updates the row, sets `updated_at`, and inserts one `SettingsChange` per changed field with a shared `uuid4` `change_set_id` and the same `changed_at`
   - **`history(session, page=1, per_page=25)`**: newest first
   - **`settings_at(session, when)`**: delegates to the domain function
-- [ ] T055 [US2] Create `src/floorpro/routes/settings.py`, per contracts/routes.md:
+- [X] T055 [US2] Create `src/floorpro/routes/settings.py`, per contracts/routes.md:
   - **`GET /settings`**: the form plus the last 10 history rows
   - **`POST /settings`**: 422 on errors, with the headers `HX-Retarget: #settings-form` and `HX-Reswap: outerHTML`. The "Nothing to change" toast when there's no diff, otherwise a 200 `_confirm.html` dialog into `#modal` with hidden staged fields and the token
   - **`POST /settings/confirm`**: 409 on a bad token, otherwise apply and show the "Settings saved" toast (HTMX: render the settings page with `push_url="/settings"`; plain request: `flash_redirect`)
   - **`GET /settings/history`**: paginated
   - **`GET /settings/form/vat-fields`**: renders `_vat_fields.html` from `vat_registered`, `vat_rate` and `vat_number`
   - register the router in `src/floorpro/app.py`
-- [ ] T056 [P] [US2] Create the settings templates:
+- [X] T056 [P] [US2] Create the settings templates:
   - **`src/floorpro/templates/settings/index.html`** and **`src/floorpro/templates/settings/_form.html`**:
     - the `<form id="settings-form">` has `hx-post="/settings"`, `hx-target="#modal"` and `hx-swap="innerHTML"`
     - currency select showing the symbol and name

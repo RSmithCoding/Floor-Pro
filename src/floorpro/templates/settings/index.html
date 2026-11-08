@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "components/card.html" import card %}
+{% block title %}Settings · FloorPro{% endblock %}
+{% block content %}
+<div>
+  <h1 class="text-2xl font-semibold tracking-tight text-ink-900">Settings</h1>
+  <p class="mt-1 text-sm text-ink-600">Currency, VAT and how prices are entered.</p>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-5">
+  <div class="lg:col-span-3">
+    {% include "settings/_form.html" %}
+  </div>
+  <div class="lg:col-span-2">
+    {% call card("Change history", "Every change is recorded with the date and time.", padded=False) %}
+      {% include "settings/_history.html" %}
+      {%- if history.total > history.rows|length %}
+      <div class="border-t border-ink-100 px-5 py-3 text-sm">
+        <a href="/settings/history" class="font-medium text-brand-700 hover:text-brand-800">View all {{ history.total }} changes</a>
+      </div>
+      {%- endif %}
+    {% endcall %}
+  </div>
+</div>
+{%- if confirm %}{% include "settings/_confirm.html" %}{% endif %}
+{% endblock %}

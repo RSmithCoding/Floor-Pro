@@ -68,8 +68,9 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         log.exception("Unhandled error on %s", request.url.path)
         return render(request, "errors/500.html", "errors/_500.html", status_code=500)
 
-    from floorpro.routes import customers, dashboard
+    from floorpro.routes import customers, dashboard, settings
 
     app.include_router(dashboard.router)
     app.include_router(customers.router)
+    app.include_router(settings.router)
     return app
